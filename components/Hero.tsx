@@ -1,0 +1,68 @@
+import PFDWidget from "./PFDWidget";
+
+export default function Hero() {
+  return (
+    <section
+      className="relative overflow-hidden border-b"
+      style={{ borderColor: "var(--rw-border)" }}
+    >
+      <div className="rw-panel-grid pointer-events-none absolute inset-0 opacity-[0.35]" />
+      <div
+        className="pointer-events-none absolute -top-40 left-1/2 h-[480px] w-[900px] -translate-x-1/2 rounded-full opacity-20 blur-3xl"
+        style={{ background: "var(--rw-green)" }}
+      />
+
+      <div className="relative mx-auto grid max-w-6xl gap-12 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+        <div className="rw-fade-up">
+          <div
+            className="mb-6 inline-flex items-center gap-2 rounded-full border px-3 py-1.5"
+            style={{ borderColor: "var(--rw-border)", background: "var(--rw-panel)" }}
+          >
+            <span className="h-1.5 w-1.5 rounded-full rw-blink" style={{ background: "var(--rw-green)" }} />
+            <span className="rw-mono-label text-[10px]" style={{ color: "var(--rw-muted)" }}>
+              Ex-항공정비사가 설계한 러닝 앱
+            </span>
+          </div>
+
+          <h1
+            className="text-4xl leading-[1.1] sm:text-5xl lg:text-6xl"
+            style={{ fontFamily: "var(--font-display)", fontWeight: 800, color: "var(--rw-text)" }}
+          >
+            Turn Every
+            <br />
+            Run Into A{" "}
+            <span style={{ color: "var(--rw-green)" }}>Flight.</span>
+          </h1>
+
+          <p
+            className="mt-6 max-w-md text-base leading-relaxed sm:text-lg"
+            style={{ color: "var(--rw-muted)" }}
+          >
+            A320F 정비사 출신 개발자가 만든 iOS 러닝 트래커. 
+            <br /> 
+            GPS, 심박수, 케이던스를 계기판처럼 읽고, 페이스 이탈을 GPWS 경보로 알려줍니다.
+          </p>
+
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <span
+              className="rw-mono-label rounded-lg px-4 py-2.5 text-[11px]"
+              style={{ background: "var(--rw-green)", color: "var(--rw-bg)" }}
+            >
+              iOS 18.5+ · watchOS
+            </span>
+            <span
+              className="rw-mono-label rounded-lg border px-4 py-2.5 text-[11px]"
+              style={{ borderColor: "var(--rw-border)", color: "var(--rw-muted)" }}
+            >
+              SwiftUI · Actor · AsyncStream
+            </span>
+          </div>
+        </div>
+
+        <div className="flex justify-center lg:justify-end rw-fade-up" style={{ animationDelay: "0.15s" }}>
+          <PFDWidget />
+        </div>
+      </div>
+    </section>
+  );
+}
