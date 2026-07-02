@@ -5,13 +5,14 @@ import Link from "next/link";
 import { ArrowLeft, Mail } from "lucide-react";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
-import { privacyContentKo, privacyContentEn } from "@/lib/privacy";
+import { privacyContentKo, privacyContentEn, privacyContentJa } from "@/lib/privacy";
 
-type Lang = "ko" | "en";
+type Lang = "ko" | "en" | "ja";
 
 export default function PrivacyClient() {
   const [lang, setLang] = useState<Lang>("ko");
-  const content = lang === "ko" ? privacyContentKo : privacyContentEn;
+  const content =
+    lang === "ko" ? privacyContentKo : lang === "en" ? privacyContentEn : privacyContentJa;
 
   return (
     <main>
@@ -48,7 +49,7 @@ export default function PrivacyClient() {
               role="tablist"
               aria-label="Language"
             >
-              {(["ko", "en"] as Lang[]).map((l) => (
+              {(["ko", "en", "ja"] as Lang[]).map((l) => (
                 <button
                   key={l}
                   role="tab"
@@ -60,7 +61,7 @@ export default function PrivacyClient() {
                     color: lang === l ? "var(--rw-bg)" : "var(--rw-muted)",
                   }}
                 >
-                  {l === "ko" ? "한국어" : "English"}
+                  {l === "ko" ? "한국어" : l === "en" ? "English" : "日本語"}
                 </button>
               ))}
             </div>
