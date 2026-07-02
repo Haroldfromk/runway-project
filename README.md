@@ -71,5 +71,29 @@ lib/
 ## 콘텐츠 수정
 
 - 트러블슈팅 항목: `lib/data.ts`의 `troubleshootCases` 배열 편집
+- FAQ 항목: `lib/faq.ts`의 `faqItems` 배열 편집
 - 색상 토큰: `app/globals.css`의 `:root` 안 `--rw-*` 변수 (앱 테마와 동일하게 유지 중)
 - 카피/문구: 각 컴포넌트 파일 내 직접 수정
+
+## 문의 폼 (Support 페이지) 설정
+
+`/support` 페이지의 문의 폼은 [Formspree](https://formspree.io)의
+`@formspree/react` SDK를 사용합니다. 서버 없이 클라이언트에서 바로
+제출하는 방식이라 별도 백엔드나 도메인 인증이 필요 없습니다.
+
+1. [formspree.io](https://formspree.io)에서 가입 후 새 Form 생성
+2. 생성된 Form의 ID(대시보드에서 확인 가능, 예: `mwvdwrng`) 확인
+3. 로컬 개발: 프로젝트 루트에 `.env.local` 파일을 만들고 아래처럼 작성
+
+   ```
+   NEXT_PUBLIC_FORMSPREE_ID=mwvdwrng
+   ```
+
+4. Vercel 배포: 프로젝트 설정 → **Settings → Environment Variables**에서
+   `NEXT_PUBLIC_FORMSPREE_ID`를 동일하게 등록 후 재배포
+
+Formspree 무료 티어는 월 50건까지 제출 가능합니다. Form 대시보드에서
+받는 이메일 주소를 지정할 수 있습니다(기본값은 가입 이메일).
+
+환경변수가 설정되지 않은 상태에서는 제출 버튼이 비활성화되고
+안내 메시지가 표시되며, 하단의 mailto 링크로 직접 연락할 수 있습니다.

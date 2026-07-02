@@ -110,6 +110,19 @@ export default function Nav() {
             )}
           </Link>
           <Link
+            href="/support"
+            className="rw-mono-label relative pb-1 transition-colors hover:opacity-100"
+            style={{ color: isPageActive("/support") ? "var(--rw-green)" : "var(--rw-muted)" }}
+          >
+            Support
+            {isPageActive("/support") && (
+              <span
+                className="absolute -bottom-[1px] left-0 h-[1.5px] w-full"
+                style={{ background: "var(--rw-green)" }}
+              />
+            )}
+          </Link>
+          <Link
             href="/troubleshooting"
             className="rw-mono-label rounded-full border px-3 py-1.5 transition-colors"
             style={{
