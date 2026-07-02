@@ -1,9 +1,9 @@
 import { PhoneFrame, WatchFrame, ScreenImage } from "./DeviceFrame";
 
 const phoneShots: { src: string; label: string }[] = [
+  { src: "/screenshots/phone/homeview.png", label: "HOME · 대시보드" },
   { src: "/screenshots/phone/missionflight.png", label: "MISSION FLIGHT · 설정" },
   { src: "/screenshots/phone/takeoff.png", label: "TAKEOFF · 사전 점검" },
-  { src: "/screenshots/phone/dynamic-island.jpg", label: "DYNAMIC ISLAND" },
   { src: "/screenshots/phone/missionrunning.png", label: "MISSION FLIGHT · CRUISE" },
   { src: "/screenshots/phone/freerunning.png", label: "FREE FLIGHT · CRUISE" },
   { src: "/screenshots/phone/touchdown.png", label: "TOUCHDOWN" },
@@ -11,6 +11,7 @@ const phoneShots: { src: string; label: string }[] = [
   { src: "/screenshots/phone/logbook.png", label: "LOGBOOK" },
   { src: "/screenshots/phone/alerts.png", label: "ALERTS · GPWS 기록" },
   { src: "/screenshots/phone/chart.png", label: "FLIGHT CALENDAR" },
+  { src: "/screenshots/phone/dynamic-island.jpg", label: "DYNAMIC ISLAND" },
 ];
 
 const watchShots: { src: string; label: string }[] = [
@@ -52,7 +53,7 @@ export default function Screens() {
         >
           {phoneShots.map((shot) => (
             <div key={shot.src} className="shrink-0" style={{ scrollSnapAlign: "start" }}>
-              <PhoneFrame label={shot.label}>
+              <PhoneFrame label={shot.label} showNotch={false}>
                 <ScreenImage src={shot.src} alt={shot.label} />
               </PhoneFrame>
             </div>

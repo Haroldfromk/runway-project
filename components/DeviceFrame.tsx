@@ -4,10 +4,12 @@ export function PhoneFrame({
   children,
   label,
   size = "md",
+  showNotch = true,
 }: {
   children: ReactNode;
   label?: string;
   size?: "sm" | "md";
+  showNotch?: boolean;
 }) {
   const width = size === "sm" ? 190 : 220;
   return (
@@ -21,10 +23,12 @@ export function PhoneFrame({
           boxShadow: "0 20px 60px -20px rgba(100, 255, 218, 0.15)",
         }}
       >
-        <div
-          className="absolute left-1/2 top-1.5 z-10 h-4 w-20 -translate-x-1/2 rounded-full"
-          style={{ background: "#000" }}
-        />
+        {showNotch && (
+          <div
+            className="absolute left-1/2 top-1.5 z-10 h-4 w-20 -translate-x-1/2 rounded-full"
+            style={{ background: "#000" }}
+          />
+        )}
         <div
           className="relative overflow-hidden rounded-[1.6rem]"
           style={{ aspectRatio: "9 / 19.5", background: "var(--rw-bg)" }}
