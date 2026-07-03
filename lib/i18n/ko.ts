@@ -96,7 +96,7 @@ export const ko: SiteDictionary = {
     ],
     actor: {
       quote:
-        "GPS, 심박수, 케이던스가 동시에 들어오므로 상태 무결성을 보장하기 위해 RunningCenter Actor를 두고 모든 러닝 계산을 단일 격리 영역에서 처리했습니다.",
+        "GPS 업데이트가 연속적으로 들어오면서 페이스, 거리, GPWS 판정까지 매번 계산해야 하므로, 이 계산 로직을 RunningCenter Actor로 격리해 상태 무결성을 보장했습니다. 심박수와 케이던스는 WatchConnectivity가 직접 send/receive해 @Observable ViewModel로 전달합니다.",
     },
     phase: {
       quote: [

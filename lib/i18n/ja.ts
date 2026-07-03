@@ -96,7 +96,7 @@ export const ja: SiteDictionary = {
     ],
     actor: {
       quote:
-        "GPS、心拍数、ケイデンスが同時に入ってくるため、状態の整合性を保証するためにRunningCenter Actorを設け、すべてのランニング計算を単一の隔離領域で処理しました。",
+        "GPSの更新が連続的に発生し、そのたびにペース・距離・GPWS判定を再計算する必要があるため、この計算ロジックをRunningCenter Actorに隔離して状態の整合性を保証しました。心拍数とケイデンスはWatchConnectivityが直接send/receiveし、@Observable ViewModelへ渡します。",
     },
     phase: {
       quote: [

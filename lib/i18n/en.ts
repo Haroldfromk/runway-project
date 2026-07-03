@@ -96,7 +96,7 @@ export const en: SiteDictionary = {
     ],
     actor: {
       quote:
-        "GPS, heart rate, and cadence all arrive concurrently, so to guarantee state integrity I put a RunningCenter Actor in place and routed every running calculation through a single isolated region.",
+        "GPS updates arrive continuously and require recalculating pace, distance, and GPWS status each time, so I isolated that calculation logic inside a RunningCenter Actor to guarantee state integrity. Heart rate and cadence are sent and received directly by WatchConnectivity and delivered to the @Observable ViewModel.",
     },
     phase: {
       quote: [

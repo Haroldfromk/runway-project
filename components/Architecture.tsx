@@ -65,25 +65,30 @@ function Quote({ label, children }: { label: string; children: React.ReactNode[]
 }
 
 function ActorDiagram({ dict }: { dict: SiteDictionary["architecture"] }) {
-  const sources = ["CoreLocation", "HealthKit", "WatchConnectivity"];
   return (
     <>
       <div className="flex min-w-[560px] flex-col items-center gap-5">
-        <div className="flex w-full justify-center gap-4">
-          {sources.map((s) => (
-            <Node key={s}>{s}</Node>
-          ))}
+       <div className="flex w-full items-start justify-center gap-16">
+          <div className="flex flex-col items-center gap-2">
+            <Node>CoreLocation</Node>
+            <VArrow color="var(--rw-border)" />
+            <Node variant="highlight">RunningCenter (actor · serial queue)</Node>
+            <VArrow color="var(--rw-green)" />
+            <Node>AsyncStream&lt;FlightData&gt;</Node>
+          </div>
+          <div className="mt-[76px] flex flex-col items-center gap-4">
+            <Node>HealthKit + WatchConnectivity</Node>
+            <VArrow color="var(--rw-border)" />
+            <span className="rw-mono-label text-[9px]" style={{ color: "var(--rw-muted)" }}>
+              send / receive
+            </span>
+          </div>
         </div>
-        <svg width="100%" height="32" viewBox="0 0 400 32" className="max-w-xs">
-          <path d="M40,0 L200,26" stroke="var(--rw-border)" strokeWidth="1.5" fill="none" />
-          <path d="M200,0 L200,26" stroke="var(--rw-border)" strokeWidth="1.5" fill="none" />
-          <path d="M360,0 L200,26" stroke="var(--rw-border)" strokeWidth="1.5" fill="none" />
+        <svg width="100%" height="55" viewBox="0 0 400 55" className="max-w-md" preserveAspectRatio="none">
+          <path d="M60,-15 L200,49" stroke="var(--rw-border)" strokeWidth="1.5" fill="none" />
+          <path d="M340,-15 L200,49" stroke="var(--rw-border)" strokeWidth="1.5" fill="none" />
         </svg>
-        <Node variant="highlight">RunningCenter (actor · serial queue)</Node>
-        <VArrow color="var(--rw-green)" />
-        <Node>AsyncStream&lt;FlightData&gt;</Node>
-        <VArrow />
-        <Node>ViewModel (@MainActor) → SwiftUI</Node>
+        <Node>ViewModel (@Observable) → SwiftUI</Node>
       </div>
       <Quote label={dict.quoteLabel}>{dict.actor.quote}</Quote>
     </>
