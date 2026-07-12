@@ -133,6 +133,10 @@ export const ja: SiteDictionary = {
       { label: "WatchConnectivity", role: "iPhone ↔ Watch" },
       { label: "SwiftData", role: "保存" },
       { label: "MapKit + MapPolyline", role: "ルート可視化" },
+      { label: "HealthKit", role: "心拍数・ケイデンス・ワークアウトセッション" },
+      { label: "WidgetKit + ActivityKit", role: "Dynamic Island" },
+      { label: "WeatherKit", role: "リアルタイム天気" },
+      { label: "Combine", role: "Timer管理" },
     ],
   },
   footer: {

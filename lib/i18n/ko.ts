@@ -133,6 +133,10 @@ export const ko: SiteDictionary = {
       { label: "WatchConnectivity", role: "iPhone ↔ Watch" },
       { label: "SwiftData", role: "저장" },
       { label: "MapKit + MapPolyline", role: "경로 시각화" },
+      { label: "HealthKit", role: "심박수·케이던스·운동 세션" },
+      { label: "WidgetKit + ActivityKit", role: "Dynamic Island" },
+      { label: "WeatherKit", role: "실시간 날씨" },
+      { label: "Combine", role: "Timer 관리" },
     ],
   },
   footer: {

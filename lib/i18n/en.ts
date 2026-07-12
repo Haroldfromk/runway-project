@@ -133,6 +133,10 @@ export const en: SiteDictionary = {
       { label: "WatchConnectivity", role: "iPhone ↔ Watch" },
       { label: "SwiftData", role: "Storage" },
       { label: "MapKit + MapPolyline", role: "Route visualization" },
+      { label: "HealthKit", role: "Heart rate, cadence, workout session" },
+      { label: "WidgetKit + ActivityKit", role: "Dynamic Island" },
+      { label: "WeatherKit", role: "Live weather" },
+      { label: "Combine", role: "Timer management" },
     ],
   },
   footer: {
