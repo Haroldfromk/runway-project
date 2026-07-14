@@ -110,7 +110,7 @@ export const ko: SiteDictionary = {
     mirroring: {
       leadingLabel: "GPS + 계산 담당",
       followingLabel: "수신 + 표시만",
-      payloadLabel: "FlightData (elapsedTime 포함, 3초 throttle)",
+      payloadLabel: "FlightData (pace/거리/좌표, 3초 throttle) + elapsedTime (1초 별도 동기화)",
       quote: [
         "처음에는 iPhone과 Watch가 미러링 중에도 각자 GPS를 잡고 있었습니다.",
         "주도 기기(startOrigin) 하나만 위치를 추적하고 계산 결과를 상대에게 보내는 구조로 바꾸니, 중복 연산도 없어지고 화면 전환 지연도 사라졌습니다.",
@@ -136,7 +136,7 @@ export const ko: SiteDictionary = {
       { label: "HealthKit", role: "심박수·케이던스·운동 세션" },
       { label: "WidgetKit + ActivityKit", role: "Dynamic Island" },
       { label: "WeatherKit", role: "실시간 날씨" },
-      { label: "Combine", role: "Timer 관리" },
+      { label: "Combine", role: "위치·알림·세션 상태 Publisher + Timer" },
     ],
   },
   footer: {
@@ -248,7 +248,7 @@ export const ko: SiteDictionary = {
         {
           tag: "RESULT",
           title: "보완",
-          body: "elapsedTime을 FlightData 페이로드에 얹어 3초 throttle로 동기화. iPhone 단독 / Watch 단독 / 양방향 미러링 4가지 시나리오가 startOrigin 하나로 정리됐다.",
+          body: "elapsedTime까지 3초 throttle에 묶으면 오차가 누적되니, FlightData와 분리해 1초마다 별도 메시지(sendElapsedTime())로 동기화. iPhone 단독 / Watch 단독 / 양방향 미러링 4가지 시나리오가 startOrigin 하나로 정리됐다.",
         },
       ],
     },

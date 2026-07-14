@@ -110,7 +110,7 @@ export const en: SiteDictionary = {
     mirroring: {
       leadingLabel: "GPS + calculation",
       followingLabel: "Receive + display only",
-      payloadLabel: "FlightData (includes elapsedTime, 3s throttle)",
+      payloadLabel: "FlightData (pace/distance/coords, 3s throttle) + elapsedTime (separate 1s sync)",
       quote: [
         "At first, both the iPhone and the Watch were tracking GPS on their own even while mirroring.",
         "Switching to a structure where only the leading device (startOrigin) tracks location and sends the computed results to the other eliminated the duplicate computation and the lag when switching screens.",
@@ -136,7 +136,7 @@ export const en: SiteDictionary = {
       { label: "HealthKit", role: "Heart rate, cadence, workout session" },
       { label: "WidgetKit + ActivityKit", role: "Dynamic Island" },
       { label: "WeatherKit", role: "Live weather" },
-      { label: "Combine", role: "Timer management" },
+      { label: "Combine", role: "Location, alert, session-state publishers + timer" },
     ],
   },
   footer: {
@@ -248,7 +248,7 @@ export const en: SiteDictionary = {
         {
           tag: "RESULT",
           title: "Closing the gap",
-          body: "Added elapsedTime to the FlightData payload and synced it with a 3-second throttle. All four scenarios - iPhone-only, Watch-only, and bidirectional mirroring - now resolve to a single startOrigin-based flow.",
+          body: "Bundling elapsedTime into the 3-second-throttled FlightData payload would let drift accumulate, so it's synced separately every 1 second via its own message (sendElapsedTime()). All four scenarios - iPhone-only, Watch-only, and bidirectional mirroring - now resolve to a single startOrigin-based flow.",
         },
       ],
     },

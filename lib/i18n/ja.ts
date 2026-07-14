@@ -110,7 +110,7 @@ export const ja: SiteDictionary = {
     mirroring: {
       leadingLabel: "GPS + 計算担当",
       followingLabel: "受信 + 表示のみ",
-      payloadLabel: "FlightData(elapsedTime含む、3秒throttle)",
+      payloadLabel: "FlightData(ペース・距離・座標、3秒throttle) + elapsedTime(1秒ごとに別途同期)",
       quote: [
         "最初はミラーリング中でもiPhoneとWatchがそれぞれ独自にGPSを取得していました。",
         "主導端末(startOrigin)のみが位置を追跡し、計算結果を相手に送る構造に変更したことで、重複した計算がなくなり、画面切り替えの遅延も解消されました。",
@@ -136,7 +136,7 @@ export const ja: SiteDictionary = {
       { label: "HealthKit", role: "心拍数・ケイデンス・ワークアウトセッション" },
       { label: "WidgetKit + ActivityKit", role: "Dynamic Island" },
       { label: "WeatherKit", role: "リアルタイム天気" },
-      { label: "Combine", role: "Timer管理" },
+      { label: "Combine", role: "位置情報・アラート・セッション状態のPublisher + Timer" },
     ],
   },
   footer: {
@@ -248,7 +248,7 @@ export const ja: SiteDictionary = {
         {
           tag: "RESULT",
           title: "補完",
-          body: "elapsedTimeをFlightDataのペイロードに乗せ、3秒スロットルで同期。iPhone単独 / Watch単独 / 双方向ミラーリングの4つのシナリオがstartOrigin一つで整理された。",
+          body: "elapsedTimeまで3秒スロットルに乗せると誤差が積み重なるため、FlightDataとは分離して1秒ごとに専用メッセージ(sendElapsedTime())で同期。iPhone単独 / Watch単独 / 双方向ミラーリングの4つのシナリオがstartOrigin一つで整理された。",
         },
       ],
     },
