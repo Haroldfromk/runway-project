@@ -472,5 +472,36 @@ export const ko: SiteDictionary = {
         },
       ],
     },
+    {
+      id: "mirroring-scope-narrowing",
+      number: "09",
+      title: "미러링 범위 축소 - 워치 주도는 독립 실행으로",
+      status: "RESOLVED",
+      squawk: "워치 주도 미러링에서만 반복적으로 터지는 문제들 - 지도 누락, 종료 이벤트 중복, GPS 추적 교차, 다이나믹 아일랜드 정지",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "패턴 확인",
+          body: "미러링 4가지 조합(앱주도/워치주도 × 앱종료/워치종료)을 코드로 전부 재검토한 결과, 지금까지 나온 문제의 절반 이상이 '워치 주도 + iPhone이 그걸 실시간으로 따라가야 한다'는 조합 하나에서만 발생하고 있었다.",
+        },
+        {
+          tag: "DISCOVERY",
+          title: "GPS 교차 추적의 실체",
+          body: "WatchPFDView에는 '.onDisappear에서 상태를 정리한다'는 문서 주석이 있었지만 실제 코드는 없었다. 크라운으로 이탈해도 GPS 추적이 멈추지 않아, 멈추지 않은 이전 추적이 orphan 상태로 남은 채 다음 러닝과 겹치고 있었다.",
+        },
+        {
+          tag: "DISCOVERY",
+          title: "다이나믹 아일랜드도 같은 뿌리",
+          body: "Live Activity를 갱신하는 updateCruise()가 iPhone 자신의 GPS 스트림에서만 호출되고, Watch가 보내는 flightData 수신 로직엔 연결돼 있지 않았다. 워치 주도일 땐 Live Activity가 시작 화면에서 한 발짝도 못 움직이는 구조였다.",
+        },
+        {
+          tag: "ACTION",
+          title: "타협점",
+          body: "완전한 양방향 미러링 대신, 앱 주도(+ 워치 센서 데이터 미러링)만 유지하고 워치 주도는 미러링을 아예 시도하지 않도록 startOrigin으로 분기했다. 종료 시엔 기존 '워치 단독 러닝' 경로 그대로 기록만 iPhone Logbook에 전달한다.",
+        },
+      ],
+      verdict:
+        "워치로 뛸 땐 대개 화면을 보지 않는다는 현실을 인정했다. 워치 주도 러닝에 iPhone 실시간 동기화가 꼭 필요하지 않다고 판단해서, 완전한 양방향 미러링 대신 실사용에 맞춰 스코프를 의도적으로 좁혔다. 01번(미러링 아키텍처 재설계)에서 완성했던 4가지 시나리오 중 하나를 다시 걷어낸 셈이다.",
+    },
   ],
 };

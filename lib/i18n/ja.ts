@@ -472,5 +472,36 @@ export const ja: SiteDictionary = {
         },
       ],
     },
+    {
+      id: "mirroring-scope-narrowing",
+      number: "09",
+      title: "ミラーリング範囲の縮小 - Watch主導は完全独立実行へ",
+      status: "RESOLVED",
+      squawk: "Watch主導ミラーリングでのみ繰り返し発生する問題群 - 地図欠落、終了イベント重複、GPS追跡の交錯、Dynamic Islandの停止",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "パターンの確認",
+          body: "ミラーリングの4つの組み合わせ(アプリ主導/Watch主導 × アプリ終了/Watch終了)をコードで全て再検証した結果、これまでの問題の半分以上が「Watch主導 + iPhoneがそれをリアルタイムで追従する」という組み合わせでのみ発生していた。",
+        },
+        {
+          tag: "DISCOVERY",
+          title: "GPS交錯の正体",
+          body: "WatchPFDViewには「.onDisappearで状態を整理する」というドキュメントコメントがあったが、実際のコードには存在しなかった。デジタルクラウンで離脱してもGPS追跡が停止せず、止まらないまま残った以前の追跡が次のランと重なっていた。",
+        },
+        {
+          tag: "DISCOVERY",
+          title: "Dynamic Islandも同じ根本原因",
+          body: "Live Activityを更新するupdateCruise()はiPhone自身のGPSストリームからしか呼ばれておらず、Watchから送られるflightData受信ロジックには接続されていなかった。Watch主導の場合、Live Activityは開始画面から一歩も動けない構造だった。",
+        },
+        {
+          tag: "ACTION",
+          title: "妥協点",
+          body: "完全な双方向ミラーリングの代わりに、アプリ主導(+ Watchセンサーデータのミラーリング)のみを維持し、Watch主導ではミラーリングを一切試みないようstartOriginで分岐させた。終了時は既存の「Watch単独ラン」経路のまま記録だけiPhoneのLogbookに渡す。",
+        },
+      ],
+      verdict:
+        "Watchで走っている間はたいてい画面を見ないという現実を受け入れた。Watch主導のランにiPhoneのリアルタイム同期は必須ではないと判断し、完全な双方向ミラーリングを追い求める代わりに実際の使われ方に合わせてスコープを意図的に狭めた。01番(ミラーリングアーキテクチャ再設計)で組み上げた4つのシナリオのうち一つを、今回撤回した形になる。",
+    },
   ],
 };

@@ -472,5 +472,36 @@ export const en: SiteDictionary = {
         },
       ],
     },
+    {
+      id: "mirroring-scope-narrowing",
+      number: "09",
+      title: "Narrowing the mirroring scope - Watch-led runs go fully standalone",
+      status: "RESOLVED",
+      squawk: "A cluster of bugs that only ever showed up in Watch-led mirroring - missing routes, duplicate stop events, crossed GPS tracking, a stuck Dynamic Island",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "The pattern",
+          body: "Re-auditing all four mirroring combinations (app-led/Watch-led x app-ends/Watch-ends) in code, more than half of every bug found so far traced back to exactly one combination: Watch leading while iPhone had to mirror it live.",
+        },
+        {
+          tag: "DISCOVERY",
+          title: "What the crossed GPS tracking actually was",
+          body: "WatchPFDView's doc comment claimed '.onDisappear cleans up state,' but there was no such handler in the code. Leaving via the Digital Crown never stopped GPS tracking, so an orphaned session kept running and overlapped with the next run.",
+        },
+        {
+          tag: "DISCOVERY",
+          title: "Same root cause behind the Dynamic Island",
+          body: "updateCruise(), which refreshes the Live Activity, was only ever called from iPhone's own GPS stream - never from the flightData messages received from Watch. When Watch led, the Live Activity was structurally stuck at its start screen.",
+        },
+        {
+          tag: "ACTION",
+          title: "The trade-off",
+          body: "Instead of full bidirectional mirroring, kept app-led mirroring (still needed for Watch sensor data) and branched on startOrigin so Watch never even attempts mirroring when it leads. On stop, it just falls back to the existing standalone-run path, delivering the record to iPhone's Logbook.",
+        },
+      ],
+      verdict:
+        "Accepted the reality that most people aren't looking at their phone while a Watch-led run is happening. Decided iPhone didn't need to mirror it live, and deliberately narrowed the scope to match actual usage instead of chasing full bidirectional mirroring. This walks back one of the four scenarios that entry #01 (mirroring redesign) had originally built out.",
+    },
   ],
 };
