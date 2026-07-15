@@ -18,7 +18,7 @@ export const ko: SiteDictionary = {
       "A320F 정비사 출신 개발자가 만든 iOS 러닝 트래커.",
       "GPS, 심박수, 케이던스를 계기판처럼 읽고, 페이스 이탈을 GPWS 경보로 알려줍니다.",
     ],
-    comingSoon: "App Store 출시 준비 중",
+    appStoreCta: "App Store에서 다운로드",
     badgeOs: "iOS 26+ · watchOS 11.5+",
     badgeStack: "SwiftUI · Actor · AsyncStream",
     androidBadge: "Android 포팅 진행 중",

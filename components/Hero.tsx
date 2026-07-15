@@ -1,4 +1,4 @@
-import { Clock } from "lucide-react";
+import { Download } from "lucide-react";
 import PFDWidget from "./PFDWidget";
 import type { SiteDictionary } from "@/lib/i18n/schema";
 
@@ -49,16 +49,19 @@ export default function Hero({ dict }: { dict: SiteDictionary["hero"] }) {
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <span
-              className="rw-mono-label flex items-center gap-2 rounded-lg border border-dashed px-4 py-2.5 text-[11px]"
-              style={{ borderColor: "var(--rw-green)", color: "var(--rw-green)" }}
-            >
-              <Clock size={14} aria-hidden="true" />
-              {dict.comingSoon}
-            </span>
-            <span
-              className="rw-mono-label rounded-lg px-4 py-2.5 text-[11px]"
+            <a
+              href="https://apps.apple.com/kr/app/runway-every-run-is-a-flight/id6786199945"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rw-mono-label flex items-center gap-2 rounded-lg px-4 py-2.5 text-[11px] transition-opacity hover:opacity-90"
               style={{ background: "var(--rw-green)", color: "var(--rw-bg)" }}
+            >
+              <Download size={14} aria-hidden="true" />
+              {dict.appStoreCta}
+            </a>
+            <span
+              className="rw-mono-label rounded-lg border px-4 py-2.5 text-[11px]"
+              style={{ borderColor: "var(--rw-border)", color: "var(--rw-muted)" }}
             >
               {dict.badgeOs}
             </span>

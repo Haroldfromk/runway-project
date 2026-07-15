@@ -18,7 +18,7 @@ export const en: SiteDictionary = {
       "An iOS running tracker built by a developer who used to maintain A320F aircraft.",
       "Read your GPS, heart rate, and cadence like a flight instrument, and get pace deviations as GPWS-style warnings.",
     ],
-    comingSoon: "Coming soon to the App Store",
+    appStoreCta: "Download on the App Store",
     badgeOs: "iOS 26+ · watchOS 11.5+",
     badgeStack: "SwiftUI · Actor · AsyncStream",
     androidBadge: "Android port in progress",

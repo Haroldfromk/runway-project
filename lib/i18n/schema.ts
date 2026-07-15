@@ -69,7 +69,7 @@ export interface SiteDictionary {
     titleLine2Prefix: string;
     titleLine2Accent: string;
     description: string[];
-    comingSoon: string;
+    appStoreCta: string;
     badgeOs: string;
     badgeStack: string;
     androidBadge: string;

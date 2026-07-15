@@ -18,7 +18,7 @@ export const ja: SiteDictionary = {
       "A320Fの整備士出身の開発者が作ったiOSランニングトラッカー。",
       "GPS、心拍数、ケイデンスを計器のように読み取り、ペースのズレをGPWS警報でお知らせします。",
     ],
-    comingSoon: "App Store 公開準備中",
+    appStoreCta: "App Storeでダウンロード",
     badgeOs: "iOS 26+ · watchOS 11.5+",
     badgeStack: "SwiftUI · Actor · AsyncStream",
     androidBadge: "Android移植進行中",
