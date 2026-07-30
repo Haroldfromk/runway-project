@@ -8,6 +8,7 @@ export const en: SiteDictionary = {
     privacy: "Privacy",
     support: "Support",
     maintenanceLog: "Maintenance Log",
+    updates: "Updates",
   },
   hero: {
     badge: "A running app designed by an ex-aircraft mechanic",
@@ -73,6 +74,7 @@ export const en: SiteDictionary = {
       { key: "touchdown", label: "TOUCHDOWN" },
       { key: "summary", label: "FLIGHT SUMMARY · Map route" },
       { key: "logbook", label: "LOGBOOK" },
+      { key: "databackup", label: "DATA BACKUP · CloudKit" },
       { key: "alerts", label: "ALERTS · GPWS history" },
       { key: "chart", label: "FLIGHT CALENDAR" },
       { key: "dynamic-island", label: "DYNAMIC ISLAND" },
@@ -132,10 +134,13 @@ export const en: SiteDictionary = {
       { label: "FlightPhase enum", role: "State machine" },
       { label: "WatchConnectivity", role: "iPhone ↔ Watch" },
       { label: "SwiftData", role: "Storage" },
+      { label: "CloudKit (CKRecord)", role: "Manual backup/restore · Private Database" },
+      { label: "Douglas-Peucker", role: "GPS route compression, tolerance scaled to route diagonal" },
       { label: "MapKit + MapPolyline", role: "Route visualization" },
       { label: "HealthKit", role: "Heart rate, cadence, workout session" },
       { label: "WidgetKit + ActivityKit", role: "Dynamic Island" },
       { label: "WeatherKit", role: "Live weather" },
+      { label: "AVSpeechSynthesizer", role: "Voice announcements for km splits and countdown" },
       { label: "Combine", role: "Location, alert, session-state publishers + timer" },
     ],
   },
@@ -195,6 +200,18 @@ export const en: SiteDictionary = {
     faqFooterSuffix: "page.",
     subjectNewInquiry: "New inquiry",
     subjectFromNameSuffix: "'s inquiry",
+  },
+  updatesPage: {
+    backLabel: "Back to RunWay",
+    eyebrow: "Updates",
+    title: "Update history",
+    description: [
+      "What changed in each version, in order. This tracks what's",
+      "actually shipped, so work that only exists in the next",
+      "version isn't listed here yet, same as the maintenance log.",
+    ],
+    currentLabel: "Current version",
+    releasedLabel: "Released",
   },
   faq: [
     {
@@ -502,6 +519,69 @@ export const en: SiteDictionary = {
       ],
       verdict:
         "Accepted the reality that most people aren't looking at their phone while a Watch-led run is happening. Decided iPhone didn't need to mirror it live, and deliberately narrowed the scope to match actual usage instead of chasing full bidirectional mirroring. This walks back one of the four scenarios that entry #01 (mirroring redesign) had originally built out.",
+    },
+    {
+      id: "session-id-duplicate-save",
+      number: "10",
+      title: "Duplicate saves during mirroring - cleaned up with a shared session ID",
+      status: "RESOLVED",
+      squawk: "Ending a run on Watch mid-mirroring and immediately starting a new one saved the same run to the log multiple times",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "The real-device symptom",
+          body: "Watch ended a run while mirroring, but the iPhone was still alive. Resuming on Watch right after, Watch and iPhone both kept collecting their own location data at the same time, and ending the Watch run again logged the same run three separate times.",
+        },
+        {
+          tag: "ROOT CAUSE",
+          title: "No shared identifier for \"this is the same run\"",
+          body: "Each device just saved whatever run ended on its own side, with no way to check whether the other device was talking about the same run. Even a slightly delayed stop signal was enough for a new run and a stale session to get tangled together.",
+        },
+        {
+          tag: "ACTION",
+          title: "Introduced a shared session ID",
+          body: "The device that starts the run issues a UUID and holds it as runSessionID, sending it along with every flightData message and the final save message. At save time, that same value becomes SwiftDataFlight.id, so a record that already exists under that id is never saved again.",
+        },
+        {
+          tag: "ACTION",
+          title: "Guarded the receiving side too",
+          body: "Once Watch starts its own new run (startOrigin == .local), it now ignores any stale flightData still arriving from iPhone. The same guard was mirrored on iPhone's side for the opposite direction.",
+        },
+        {
+          tag: "DISCOVERY",
+          title: "Cleaned up iPhone's native mirroring receiver too",
+          body: "While digging into this, found that HealthKitService+iOS.swift's retrieveRemoteSession() wasn't actually used for heart-rate delivery or for saving to Apple Health - either way already went through a different path. Keeping it registered only risked breaking the save guard or pushing PFDView onto the navigation stack twice, so the registration was disabled.",
+        },
+      ],
+      verdict:
+        "Entry #09 already removed Watch-led mirroring itself, but the code that let iPhone receive Watch's mirrored session back was still sitting there. Now the start side is decided by iPhone alone, full stop, and the stop side confirms it's the same run via the shared session ID.",
+    },
+  ],
+  releases: [
+    {
+      version: "v1.2",
+      date: "2026.07",
+      items: [
+        "Added voice announcements for km splits (TTS)",
+        "Improved Mission Flight target pace/heart-rate display",
+        "Changed the map's stop marker",
+        "Added a Settings screen",
+      ],
+    },
+    {
+      version: "v1.1",
+      date: "2026.07",
+      items: [
+        "Fixed Mission Flight GPWS alerts (SINK RATE/OVERSPEED) not showing",
+        "Fixed being unable to end a run from the GPWS alert screen",
+        "Fixed the remaining-distance display in MINIMUMS alerts",
+        "Fixed Watch-only runs not reaching iPhone",
+      ],
+    },
+    {
+      version: "v1.0",
+      date: "2026.06",
+      items: ["RunWay launch"],
     },
   ],
 };

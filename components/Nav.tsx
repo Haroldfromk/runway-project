@@ -136,6 +136,19 @@ export default function Nav({ lang, dict }: { lang: Lang; dict: SiteDictionary["
             )}
           </Link>
           <Link
+            href={`${homePath}/updates`}
+            className="rw-mono-label relative shrink-0 pb-1 transition-colors hover:opacity-100"
+            style={{ color: isPageActive("/updates") ? "var(--rw-green)" : "var(--rw-muted)" }}
+          >
+            {dict.updates}
+            {isPageActive("/updates") && (
+              <span
+                className="absolute -bottom-[1px] left-0 h-[1.5px] w-full"
+                style={{ background: "var(--rw-green)" }}
+              />
+            )}
+          </Link>
+          <Link
             href={`${homePath}/troubleshooting`}
             className="rw-mono-label shrink-0 rounded-full border px-3 py-1.5 transition-colors"
             style={{

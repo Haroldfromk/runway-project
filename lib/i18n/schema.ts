@@ -54,6 +54,12 @@ export interface SupportCategory {
   label: string;
 }
 
+export interface ReleaseNote {
+  version: string;
+  date: string;
+  items: string[];
+}
+
 export interface SiteDictionary {
   nav: {
     concept: string;
@@ -62,6 +68,7 @@ export interface SiteDictionary {
     privacy: string;
     support: string;
     maintenanceLog: string;
+    updates: string;
   };
   hero: {
     badge: string;
@@ -157,6 +164,15 @@ export interface SiteDictionary {
     subjectNewInquiry: string;
     subjectFromNameSuffix: string;
   };
+  updatesPage: {
+    backLabel: string;
+    eyebrow: string;
+    title: string;
+    description: string[];
+    currentLabel: string;
+    releasedLabel: string;
+  };
   faq: FaqItem[];
   troubleshooting: TroubleshootCase[];
+  releases: ReleaseNote[];
 }

@@ -8,6 +8,7 @@ export const ja: SiteDictionary = {
     privacy: "Privacy",
     support: "Support",
     maintenanceLog: "Maintenance Log",
+    updates: "Updates",
   },
   hero: {
     badge: "元航空整備士が設計したランニングアプリ",
@@ -73,6 +74,7 @@ export const ja: SiteDictionary = {
       { key: "touchdown", label: "TOUCHDOWN" },
       { key: "summary", label: "FLIGHT SUMMARY · マップルート" },
       { key: "logbook", label: "LOGBOOK" },
+      { key: "databackup", label: "DATA BACKUP · CloudKit" },
       { key: "alerts", label: "ALERTS · GPWS履歴" },
       { key: "chart", label: "FLIGHT CALENDAR" },
       { key: "dynamic-island", label: "DYNAMIC ISLAND" },
@@ -132,10 +134,13 @@ export const ja: SiteDictionary = {
       { label: "FlightPhase enum", role: "状態機械" },
       { label: "WatchConnectivity", role: "iPhone ↔ Watch" },
       { label: "SwiftData", role: "保存" },
+      { label: "CloudKit (CKRecord)", role: "手動バックアップ/復元 · Private Database" },
+      { label: "Douglas-Peucker", role: "経路の対角線長に比例した誤差でGPS座標を圧縮" },
       { label: "MapKit + MapPolyline", role: "ルート可視化" },
       { label: "HealthKit", role: "心拍数・ケイデンス・ワークアウトセッション" },
       { label: "WidgetKit + ActivityKit", role: "Dynamic Island" },
       { label: "WeatherKit", role: "リアルタイム天気" },
+      { label: "AVSpeechSynthesizer", role: "kmスプリット・カウントダウンの音声案内" },
       { label: "Combine", role: "位置情報・アラート・セッション状態のPublisher + Timer" },
     ],
   },
@@ -195,6 +200,18 @@ export const ja: SiteDictionary = {
     faqFooterSuffix: "ページをご参照ください。",
     subjectNewInquiry: "新しいお問い合わせ",
     subjectFromNameSuffix: "様からのお問い合わせ",
+  },
+  updatesPage: {
+    backLabel: "RunWayホームへ",
+    eyebrow: "Updates",
+    title: "アップデート履歴",
+    description: [
+      "バージョンごとに何が変わったかをまとめました。実際に配信",
+      "された時点のバージョン基準なので、この整備記録同様、次の",
+      "バージョンにしか存在しない作業はまだ含まれていません。",
+    ],
+    currentLabel: "現在のバージョン",
+    releasedLabel: "配信日",
   },
   faq: [
     {
@@ -502,6 +519,69 @@ export const ja: SiteDictionary = {
       ],
       verdict:
         "Watchで走っている間はたいてい画面を見ないという現実を受け入れた。Watch主導のランにiPhoneのリアルタイム同期は必須ではないと判断し、完全な双方向ミラーリングを追い求める代わりに実際の使われ方に合わせてスコープを意図的に狭めた。01番(ミラーリングアーキテクチャ再設計)で組み上げた4つのシナリオのうち一つを、今回撤回した形になる。",
+    },
+    {
+      id: "session-id-duplicate-save",
+      number: "10",
+      title: "ミラーリング中の重複保存 - 共有セッションIDで整理",
+      status: "RESOLVED",
+      squawk: "ミラーリング中にWatchでランを終了してすぐ再開すると、同じランがログに何度も重複して保存される",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "実機での症状",
+          body: "ミラーリング中にWatchでランを終了したが、iPhoneはまだ生きていた。その状態でWatchでランを再開すると、WatchとiPhoneがそれぞれ位置情報を集め続ける状態が重なり、Watchのランをさらに終了するとログに値が3回記録された。",
+        },
+        {
+          tag: "ROOT CAUSE",
+          title: "「同じラン」だと確認する共通の識別子がなかった",
+          body: "両方の端末が自分の側で終わったランをそれぞれ保存するだけで、お互いに「これは同じランだ」と確認する方法がなかった。終了信号が少し遅れて届くだけで、新しいランと以前のセッションが混ざってしまっていた。",
+        },
+        {
+          tag: "ACTION",
+          title: "共有セッションIDの導入",
+          body: "ランを開始する端末でUUIDを発行しrunSessionIDとして保持し、flightDataと最終保存メッセージに毎回乗せて送る。保存時にはこの値をそのままSwiftDataFlight.idとして使い、同じidがすでに保存されていれば再度保存しない。",
+        },
+        {
+          tag: "ACTION",
+          title: "受信側にもガードを追加",
+          body: "Watchが自分だけで新しいランを開始したら(startOrigin == .local)、iPhoneから届く古いflightDataを無視するようガードをかけた。逆方向も同様に処理した。",
+        },
+        {
+          tag: "DISCOVERY",
+          title: "iPhone側のnativeミラーリング受信も整理",
+          body: "この調査中に、HealthKitService+iOS.swiftのretrieveRemoteSession()が心拍数の伝達にもApple Healthへの保存にも使われていないことを確認した。むしろ残しておくと保存ガードが壊れたり、PFDViewがナビゲーションに重複して積まれる危険しかなかったため、登録を止めた。",
+        },
+      ],
+      verdict:
+        "09番でWatch主導ミラーリング自体はなくしたはずだったが、iPhoneがWatchのセッションを受け取り返すコードはまだ残っていた。開始側は今や完全にiPhone一つだけで判断され、終了側はセッションIDで同じランかどうかを確認する形に整理された。",
+    },
+  ],
+  releases: [
+    {
+      version: "v1.2",
+      date: "2026.07",
+      items: [
+        "kmスプリットの音声案内(TTS)を追加",
+        "Mission Flightの目標ペース/心拍数表示を改善",
+        "地図の終了マーカー表示を変更",
+        "設定画面を追加",
+      ],
+    },
+    {
+      version: "v1.1",
+      date: "2026.07",
+      items: [
+        "Mission FlightのGPWS(SINK RATE/OVERSPEED)警告が表示されない問題を修正",
+        "GPWS警告画面でランを終了できない問題を修正",
+        "MINIMUMS通知の残り距離表示の誤りを修正",
+        "Watch単独ランの記録がiPhoneに届かない問題を修正",
+      ],
+    },
+    {
+      version: "v1.0",
+      date: "2026.06",
+      items: ["RunWayリリース"],
     },
   ],
 };

@@ -12,7 +12,7 @@ export interface PrivacyContent {
 }
 
 export const privacyContentKo: PrivacyContent = {
-  lastUpdated: "최종 수정일 - 2026년 7월 2일",
+  lastUpdated: "최종 수정일 - 2026년 7월 29일",
   sections: [
     {
       heading: "개요",
@@ -28,7 +28,11 @@ export const privacyContentKo: PrivacyContent = {
     },
     {
       heading: "정보 저장 방식",
-      body: "앱이 수집한 모든 데이터는 Apple의 SwiftData 프레임워크를 통해 사용자의 기기 내부에만 저장됩니다. RunWay는 어떠한 데이터도 외부 서버로 전송, 업로드, 동기화하지 않습니다.\n\n앱은 제3자 분석 도구, 광고 SDK, 크래시 리포트 서비스를 사용하지 않습니다. 개발자를 포함한 어떠한 제3자와도 데이터를 공유하지 않습니다.",
+      body: "앱이 수집한 모든 데이터는 기본적으로 Apple의 SwiftData 프레임워크를 통해 사용자의 기기 내부에만 저장됩니다. RunWay는 사용자가 아래 iCloud 백업 기능을 직접 실행하지 않는 한 어떠한 데이터도 자동으로 외부 서버에 전송하지 않습니다.\n\n앱은 제3자 분석 도구, 광고 SDK, 크래시 리포트 서비스를 사용하지 않습니다. 개발자를 포함한 어떠한 제3자와도 데이터를 공유하지 않습니다.",
+    },
+    {
+      heading: "iCloud 백업",
+      body: "설정 화면에서 백업 버튼을 직접 눌렀을 때만 러닝 기록이 Apple의 CloudKit을 통해 사용자 본인의 iCloud Private Database에 저장됩니다. 이 데이터는 Apple 계정 소유자 본인만 접근할 수 있으며, 개발자를 포함한 제3자는 접근할 수 없습니다.\n\n복원 버튼을 누르면 iCloud에 저장된 기록 중 이 기기에 없는 것만 다시 받아옵니다. 백업/복원은 자동으로 실행되지 않으며, 설정 화면에서 언제든지 상태를 확인할 수 있습니다.",
     },
     {
       heading: "Apple Watch 연동",
@@ -52,7 +56,7 @@ export const privacyContentKo: PrivacyContent = {
 };
 
 export const privacyContentEn: PrivacyContent = {
-  lastUpdated: "Last updated - July 2, 2026",
+  lastUpdated: "Last updated - July 29, 2026",
   sections: [
     {
       heading: "Overview",
@@ -68,7 +72,11 @@ export const privacyContentEn: PrivacyContent = {
     },
     {
       heading: "How Your Data Is Stored",
-      body: "All data collected by the App is stored locally on your device only, using Apple's SwiftData framework. RunWay does not transmit, upload, or sync any of your data to external servers.\n\nThe App does not use any third-party analytics, advertising, or crash-reporting services. No data is shared with the developer or any third party.",
+      body: "By default, all data collected by the App is stored locally on your device only, using Apple's SwiftData framework. RunWay does not automatically transmit any of your data to external servers unless you manually trigger the iCloud backup described below.\n\nThe App does not use any third-party analytics, advertising, or crash-reporting services. No data is shared with the developer or any third party.",
+    },
+    {
+      heading: "iCloud Backup",
+      body: "Your running records are only uploaded to your own iCloud Private Database, via Apple's CloudKit, when you tap the backup button in Settings. This data can only be accessed by you, the owner of the Apple ID - not by the developer or any other third party.\n\nTapping restore retrieves records from iCloud that aren't already on this device. Backup and restore never run automatically; you can check their status in Settings at any time.",
     },
     {
       heading: "Apple Watch Connectivity",
@@ -92,7 +100,7 @@ export const privacyContentEn: PrivacyContent = {
 };
 
 export const privacyContentJa: PrivacyContent = {
-  lastUpdated: "最終更新日 - 2026年7月2日",
+  lastUpdated: "最終更新日 - 2026年7月29日",
   sections: [
     {
       heading: "概要",
@@ -108,7 +116,11 @@ export const privacyContentJa: PrivacyContent = {
     },
     {
       heading: "情報の保存方式",
-      body: "本アプリが収集したすべてのデータは、AppleのSwiftDataフレームワークを通じてユーザーのデバイス内にのみ保存されます。RunWayはいかなるデータも外部サーバーへ送信、アップロード、同期しません。\n\n本アプリはサードパーティの分析ツール、広告SDK、クラッシュレポートサービスを使用しません。開発者を含むいかなる第三者ともデータを共有しません。",
+      body: "本アプリが収集したすべてのデータは、既定ではAppleのSwiftDataフレームワークを通じてユーザーのデバイス内にのみ保存されます。RunWayは、下記のiCloudバックアップをユーザー自身が実行しない限り、いかなるデータも自動的に外部サーバーへ送信することはありません。\n\n本アプリはサードパーティの分析ツール、広告SDK、クラッシュレポートサービスを使用しません。開発者を含むいかなる第三者ともデータを共有しません。",
+    },
+    {
+      heading: "iCloudバックアップ",
+      body: "設定画面でバックアップボタンを押した場合にのみ、ランニング記録はAppleのCloudKitを通じてユーザー本人のiCloud Private Databaseに保存されます。このデータはApple IDの所有者本人のみがアクセスでき、開発者を含む第三者はアクセスできません。\n\n復元ボタンを押すと、iCloudに保存された記録のうちこの端末にないものだけを受信します。バックアップと復元は自動的には実行されず、設定画面でいつでも状態を確認できます。",
     },
     {
       heading: "Apple Watch連携",

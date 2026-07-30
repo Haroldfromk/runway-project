@@ -8,6 +8,7 @@ export const ko: SiteDictionary = {
     privacy: "Privacy",
     support: "Support",
     maintenanceLog: "Maintenance Log",
+    updates: "Updates",
   },
   hero: {
     badge: "Ex-항공정비사가 설계한 러닝 앱",
@@ -73,6 +74,7 @@ export const ko: SiteDictionary = {
       { key: "touchdown", label: "TOUCHDOWN" },
       { key: "summary", label: "FLIGHT SUMMARY · MAP ROUTE" },
       { key: "logbook", label: "LOGBOOK" },
+      { key: "databackup", label: "DATA BACKUP · CloudKit" },
       { key: "alerts", label: "ALERTS · GPWS 기록" },
       { key: "chart", label: "FLIGHT CALENDAR" },
       { key: "dynamic-island", label: "DYNAMIC ISLAND" },
@@ -132,10 +134,13 @@ export const ko: SiteDictionary = {
       { label: "FlightPhase enum", role: "상태 머신" },
       { label: "WatchConnectivity", role: "iPhone ↔ Watch" },
       { label: "SwiftData", role: "저장" },
+      { label: "CloudKit (CKRecord)", role: "수동 백업/복원 · Private Database" },
+      { label: "Douglas-Peucker", role: "경로 대각선 비례 오차로 GPS 좌표 압축" },
       { label: "MapKit + MapPolyline", role: "경로 시각화" },
       { label: "HealthKit", role: "심박수·케이던스·운동 세션" },
       { label: "WidgetKit + ActivityKit", role: "Dynamic Island" },
       { label: "WeatherKit", role: "실시간 날씨" },
+      { label: "AVSpeechSynthesizer", role: "km 스플릿·카운트다운 음성 안내" },
       { label: "Combine", role: "위치·알림·세션 상태 Publisher + Timer" },
     ],
   },
@@ -195,6 +200,18 @@ export const ko: SiteDictionary = {
     faqFooterSuffix: "페이지를 참고해주세요.",
     subjectNewInquiry: "새 문의",
     subjectFromNameSuffix: "님의 문의",
+  },
+  updatesPage: {
+    backLabel: "RunWay 홈으로",
+    eyebrow: "Updates",
+    title: "업데이트 내역",
+    description: [
+      "버전별로 뭐가 바뀌었는지 정리했습니다. 지금 실제로 배포된",
+      "버전 기준이라, 이 정비 기록과 아직 다음 버전으로만 존재하는",
+      "작업은 여기 포함되지 않습니다.",
+    ],
+    currentLabel: "현재 버전",
+    releasedLabel: "배포",
   },
   faq: [
     {
@@ -502,6 +519,69 @@ export const ko: SiteDictionary = {
       ],
       verdict:
         "워치로 뛸 땐 대개 화면을 보지 않는다는 현실을 인정했다. 워치 주도 러닝에 iPhone 실시간 동기화가 꼭 필요하지 않다고 판단해서, 완전한 양방향 미러링 대신 실사용에 맞춰 스코프를 의도적으로 좁혔다. 01번(미러링 아키텍처 재설계)에서 완성했던 4가지 시나리오 중 하나를 다시 걷어낸 셈이다.",
+    },
+    {
+      id: "session-id-duplicate-save",
+      number: "10",
+      title: "미러링 중복 저장 - 공유 세션 ID로 정리",
+      status: "RESOLVED",
+      squawk: "미러링 중 워치에서 러닝을 종료했다가 곧바로 재개하면, 로그에 같은 러닝이 여러 번 겹쳐 저장됨",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "실기기 증상",
+          body: "미러링 상태에서 워치로 러닝을 종료했는데 아이폰은 아직 살아있었다. 그 상태에서 워치로 러닝을 재개하니 워치와 아이폰이 각자 위치 정보를 쌓는 상태가 겹쳤고, 워치 러닝을 마저 종료하니 로그에 값이 세 번 찍혔다.",
+        },
+        {
+          tag: "ROOT CAUSE",
+          title: "같은 러닝이라는 공통 식별자가 없었다",
+          body: "두 기기 다 자기 쪽에서 끝난 러닝을 각자 저장할 뿐, 서로 '이건 같은 러닝이다'를 확인할 방법이 없었다. 종료 신호가 조금만 늦게 도착해도 새 러닝과 예전 세션이 뒤섞였다.",
+        },
+        {
+          tag: "ACTION",
+          title: "공유 세션 ID 도입",
+          body: "러닝을 시작하는 기기에서 UUID를 발급해 runSessionID로 들고 있다가, flightData와 최종 저장 메시지에 매번 실어 보낸다. 저장 시점엔 이 값을 그대로 SwiftDataFlight.id로 써서, 같은 id가 이미 저장돼 있으면 다시 저장하지 않는다.",
+        },
+        {
+          tag: "ACTION",
+          title: "수신 쪽 가드 추가",
+          body: "워치가 자기 혼자 새 러닝을 시작하면(startOrigin == .local) 아이폰이 보내는 예전 flightData를 무시하게 가드를 걸었다. 반대 방향도 동일하게 처리했다.",
+        },
+        {
+          tag: "DISCOVERY",
+          title: "아이폰 쪽 native 미러링 수신도 정리",
+          body: "이 조사 중에 HealthKitService+iOS.swift의 retrieveRemoteSession()이 심박수 전달에도 Apple Health 저장에도 안 쓰이고 있다는 걸 확인했다. 오히려 있으면 저장 가드가 깨지거나 PFDView가 내비게이션에 중복으로 쌓일 위험만 있어서 등록을 껐다.",
+        },
+      ],
+      verdict:
+        "09번에서 워치 주도 미러링 자체를 없앴는데도, 아이폰이 워치의 세션을 되받는 코드는 남아있었다. 시작 쪽은 이제 완전히 아이폰 하나로만 판단되고, 종료 쪽은 세션 ID로 같은 러닝인지 확인하는 걸로 정리됐다.",
+    },
+  ],
+  releases: [
+    {
+      version: "v1.2",
+      date: "2026.07",
+      items: [
+        "km 스플릿 음성 안내(TTS) 추가",
+        "Mission Flight 목표 페이스/심박수 표시 개선",
+        "지도 종료 마커 표기 변경",
+        "설정 화면 추가",
+      ],
+    },
+    {
+      version: "v1.1",
+      date: "2026.07",
+      items: [
+        "Mission Flight GPWS(SINK RATE/OVERSPEED) 경고가 표시되지 않던 문제 수정",
+        "GPWS 경고 화면에서 러닝 종료가 안 되던 문제 수정",
+        "MINIMUMS 알림의 남은 거리 표시 오류 수정",
+        "워치 단독 러닝 기록이 아이폰에 전달되지 않던 문제 수정",
+      ],
+    },
+    {
+      version: "v1.0",
+      date: "2026.06",
+      items: ["RunWay 출시"],
     },
   ],
 };
