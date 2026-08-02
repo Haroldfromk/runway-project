@@ -101,7 +101,7 @@ export const ko: SiteDictionary = {
     ],
     actor: {
       quote:
-        "GPS 업데이트가 연속적으로 들어오면서 페이스, 거리, GPWS 판정까지 매번 계산해야 하므로, 이 계산 로직을 RunningCenter Actor로 격리해 상태 무결성을 보장했습니다. 심박수와 케이던스는 WatchConnectivity가 직접 send/receive해 @Observable ViewModel로 전달합니다.",
+        "GPS 업데이트가 연속적으로 들어오면서 페이스, 거리, GPWS 판정까지 매번 계산해야 하므로, 이 계산 로직을 RunningCenter Actor로 격리해 상태 무결성을 보장했습니다. 심박수와 케이던스는 WatchConnectivity가 받아서 판정 로직 없이 값만 스레드 안전하게 들고 있는 HealthCenter Actor에 넘기고, RunningCenter가 필요할 때 그 값을 가져가 @Observable ViewModel로 전달합니다.",
     },
     phase: {
       quote: [
@@ -130,6 +130,7 @@ export const ko: SiteDictionary = {
       { label: "SwiftUI", role: "UI" },
       { label: "@MainActor + @Observable", role: "상태관리" },
       { label: "RunningCenter (Actor)", role: "동시성" },
+      { label: "HealthCenter (Actor)", role: "심박수/케이던스 스레드 안전 보관" },
       { label: "AsyncStream", role: "센서 → ViewModel" },
       { label: "FlightPhase enum", role: "상태 머신" },
       { label: "WatchConnectivity", role: "iPhone ↔ Watch" },
@@ -556,6 +557,63 @@ export const ko: SiteDictionary = {
       verdict:
         "09번에서 워치 주도 미러링 자체를 없앴는데도, 아이폰이 워치의 세션을 되받는 코드는 남아있었다. 시작 쪽은 이제 완전히 아이폰 하나로만 판단되고, 종료 쪽은 세션 ID로 같은 러닝인지 확인하는 걸로 정리됐다.",
     },
+    {
+      id: "runningmode-vs-startorigin",
+      number: "11",
+      title: "종료 신호가 안 나가던 문제 - runningMode 대신 startOrigin으로",
+      status: "RESOLVED",
+      squawk: "아이폰이 startWatchApp으로 워치 앱을 직접 실행시켜 미러링할 때, 워치에서 종료해도 아이폰 러닝이 끝나지 않음",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "실기기 증상",
+          body: "아이폰이 startWatchApp으로 워치 앱을 직접 실행시키면서 미러링하는 경우, 워치에서 러닝을 종료해도 아이폰 쪽 러닝이 전혀 끝나지 않았다.",
+        },
+        {
+          tag: "ROOT CAUSE",
+          title: "10번에서 끈 코드에 은근히 의존하고 있었다",
+          body: "WatchViewModel이 자기 종료를 아이폰에 알릴지 말지를 runningMode == .mirrored로 판단하고 있었는데, runningMode는 startMirroringToCompanionDevice()가 성공했을 때만 .mirrored로 바뀐다. 10번에서 retrieveRemoteSession()(이 핸드셰이크를 받아주는 리스너)을 꺼서 아이폰 쪽에 받아줄 게 없어졌고, 이 호출이 실패하면서 runningMode가 계속 .standalone으로 남아 sendStopSignal() 자체가 안 불렸다.",
+        },
+        {
+          tag: "ACTION",
+          title: "판단 기준 교체",
+          body: "판단 기준을 runningMode 대신 startOrigin != .local로 바꿨다. startOrigin은 AppDelegate.handle()에서 핸드셰이크 성공 여부와 무관하게 항상 먼저 세팅되고, stopWorkout()도 이 값을 안 건드려서 종료 시점까지 그대로 남아있다.",
+        },
+      ],
+      verdict:
+        "10번에서 retrieveRemoteSession()을 끄면서 생긴 부작용이었다. 코드를 지울 때 그 코드에 은근히 기대고 있던 다른 로직(이번엔 완전히 다른 함수의 판단 기준)까지 같이 점검해야 한다는 걸 다시 느꼈다.",
+    },
+    {
+      id: "tts-audio-ducking-cross-device",
+      number: "12",
+      title: "km 스플릿 TTS가 안 들리는 문제 - 세션 활성화와 기기 간 오디오 격리",
+      status: "KNOWN LIMITATION",
+      squawk: "음악 재생 중 km 스플릿 음성 안내가 안 들리거나, 워치 단독 러닝에서는 아예 안 들림",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "실기기 증상",
+          body: "음악을 들으며 뛰어보니 km 스플릿 안내 자체가 안 들렸다. SpeechAnnouncerService는 AVAudioSession을 .duckOthers 옵션으로 설정해 안내가 나오는 동안만 음악을 줄이는데, 이 활성화 코드가 러닝 시작 시점에 딱 한 번만 불리고 있어서 중간에 음악 앱이 세션을 가져가며 인터럽트되면 그 뒤로 복구되지 않았다.",
+        },
+        {
+          tag: "ACTION",
+          title: "재활성화로 1차 수정, 그리고 반대 문제",
+          body: "speak() 직전에 세션을 매번 재활성화하도록 고쳤더니, 이번엔 음악 소리가 러닝 내내 줄어든 채로 안 돌아왔다. start()에 남아있던 활성화 호출이 원인이었다. 덕킹은 speak()가 아니라 세션이 활성화된 동안 계속 걸리는 것이라, 이 호출을 지우고 AVSpeechSynthesizerDelegate의 didFinish/didCancel에서 즉시 비활성화하도록 바꿨다.",
+        },
+        {
+          tag: "DISCOVERY",
+          title: "기기 간 오디오 세션은 격리되어 있다",
+          body: "워치 단독 러닝 중 아이폰에서 음악을 들으면 TTS가 아예 안 들렸다. 에어팟은 두 기기 모두에 페어링돼 있어도 오디오 스트림은 한 기기만 갖고, AVAudioSession은 기기별로 완전히 독립된 인스턴스라 워치 설정이 아이폰 오디오에 영향을 줄 방법이 없다.",
+        },
+        {
+          tag: "FINDING",
+          title: "나이키 런 클럽도 같은 한계",
+          body: "커뮤니티를 찾아보니 나이키 런 클럽도 동일한 증상을 갖고 있었고, 제시된 해법은 '음악도 워치에서 재생하라'는 것뿐이었다. 앱만의 버그가 아니라 애플 생태계 전체의 구조적 한계였다.",
+        },
+      ],
+      verdict:
+        "온디바이스 덕킹 버그 두 개는 고쳤지만, 기기 간 오디오 세션 격리라는 근본 한계는 코드로 풀 수 없었다. 대신 앱 공지사항에 '음악도 Apple Watch에서 재생해달라'는 안내를 추가해 사용자 행동으로 우회했다. 모든 문제가 코드로 풀리는 건 아니고, 때로는 정직하게 안내하는 것도 답이 된다.",
+    },
   ],
   releases: [
     {
@@ -566,6 +624,9 @@ export const ko: SiteDictionary = {
         "Mission Flight 목표 페이스/심박수 표시 개선",
         "지도 종료 마커 표기 변경",
         "설정 화면 추가",
+        "iCloud 백업/복원 기능 추가",
+        "로그북 화면 개편 (월/주 단위로 기록 정리)",
+        "워치 단독 러닝 중 발생하던 종료/음성 안내 문제 수정",
       ],
     },
     {

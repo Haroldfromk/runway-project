@@ -101,7 +101,7 @@ export const en: SiteDictionary = {
     ],
     actor: {
       quote:
-        "GPS updates arrive continuously and require recalculating pace, distance, and GPWS status each time, so I isolated that calculation logic inside a RunningCenter Actor to guarantee state integrity. Heart rate and cadence are sent and received directly by WatchConnectivity and delivered to the @Observable ViewModel.",
+        "GPS updates arrive continuously and require recalculating pace, distance, and GPWS status each time, so I isolated that calculation logic inside a RunningCenter Actor to guarantee state integrity. Heart rate and cadence come in through WatchConnectivity into a HealthCenter Actor that just holds the values thread-safely with no judgment logic of its own, and RunningCenter pulls from it whenever it needs those values for the @Observable ViewModel.",
     },
     phase: {
       quote: [
@@ -130,6 +130,7 @@ export const en: SiteDictionary = {
       { label: "SwiftUI", role: "UI" },
       { label: "@MainActor + @Observable", role: "State management" },
       { label: "RunningCenter (Actor)", role: "Concurrency" },
+      { label: "HealthCenter (Actor)", role: "Thread-safe heart rate/cadence storage" },
       { label: "AsyncStream", role: "Sensors → ViewModel" },
       { label: "FlightPhase enum", role: "State machine" },
       { label: "WatchConnectivity", role: "iPhone ↔ Watch" },
@@ -556,6 +557,63 @@ export const en: SiteDictionary = {
       verdict:
         "Entry #09 already removed Watch-led mirroring itself, but the code that let iPhone receive Watch's mirrored session back was still sitting there. Now the start side is decided by iPhone alone, full stop, and the stop side confirms it's the same run via the shared session ID.",
     },
+    {
+      id: "runningmode-vs-startorigin",
+      number: "11",
+      title: "Stop signal not reaching iPhone - switched from runningMode to startOrigin",
+      status: "RESOLVED",
+      squawk: "When iPhone launches the Watch app via startWatchApp to lead mirroring, ending the run on Watch never ended it on iPhone",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "The real-device symptom",
+          body: "When iPhone led mirroring by launching the Watch app through startWatchApp, ending the run on Watch never ended the run on iPhone at all.",
+        },
+        {
+          tag: "ROOT CAUSE",
+          title: "Quietly depending on the code entry #10 had just disabled",
+          body: "WatchViewModel decided whether to tell iPhone about its own stop based on runningMode == .mirrored, but runningMode only flips to .mirrored when startMirroringToCompanionDevice() succeeds. Entry #10 had disabled retrieveRemoteSession() - the listener that handshake needs on iPhone's side - so that call could now fail, leaving runningMode stuck at .standalone and sendStopSignal() never firing.",
+        },
+        {
+          tag: "ACTION",
+          title: "Swapped the condition",
+          body: "Switched the check from runningMode to startOrigin != .local. startOrigin gets set unconditionally in AppDelegate.handle() regardless of whether that handshake succeeds, and stopWorkout() never touches it, so it's still there by the time the stop event gets handled.",
+        },
+      ],
+      verdict:
+        "A side effect of disabling retrieveRemoteSession() in entry #10. A reminder that removing code means checking what else was quietly leaning on it too - this time, a completely different function's branching logic.",
+    },
+    {
+      id: "tts-audio-ducking-cross-device",
+      number: "12",
+      title: "km-split TTS goes unheard - session activation and cross-device audio isolation",
+      status: "KNOWN LIMITATION",
+      squawk: "km-split voice announcements go unheard while music plays, and never come through at all during watch-only runs",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "The real-device symptom",
+          body: "Running with music on, the km-split announcement was inaudible entirely. SpeechAnnouncerService configures AVAudioSession with .duckOthers so music ducks only while announcing, but that activation call only fired once at run start. Once a music app grabbed the session mid-run and interrupted it, nothing ever reactivated it.",
+        },
+        {
+          tag: "ACTION",
+          title: "First fix, then the opposite problem",
+          body: "Reactivating the session right before every speak() call fixed that, but a second real-device test showed music staying ducked for the entire run instead of just a few seconds. A leftover activation call in start() was the cause. Ducking follows session activation, not the speak() call itself, so that call was removed and an AVSpeechSynthesizerDelegate callback (didFinish/didCancel) now deactivates the session the instant speech ends.",
+        },
+        {
+          tag: "DISCOVERY",
+          title: "Audio sessions don't cross devices",
+          body: "During a watch-only run with music playing on iPhone, the TTS was never audible at all. AirPods stay bluetooth-paired to both devices, but only one device owns the actual audio stream at a time. AVAudioSession is a fully separate instance per device, so nothing the Watch configures can reach iPhone's audio.",
+        },
+        {
+          tag: "FINDING",
+          title: "Nike Run Club hits the same wall",
+          body: "Community reports showed Nike Run Club has the identical limitation, and the only fix they offer is playing music from the Watch itself. This wasn't our app's bug. It's a structural limit across the whole Apple ecosystem.",
+        },
+      ],
+      verdict:
+        "Fixed both on-device ducking bugs, but the cross-device audio isolation itself can't be solved in code. Added a note in the app's announcements screen instead, asking users to play music from the Watch itself. Not every problem gets solved by code. Sometimes an honest heads-up is the actual answer.",
+    },
   ],
   releases: [
     {
@@ -564,8 +622,11 @@ export const en: SiteDictionary = {
       items: [
         "Added voice announcements for km splits (TTS)",
         "Improved Mission Flight target pace/heart-rate display",
-        "Changed the map's stop marker",
+        "Changed the map's end marker",
         "Added a Settings screen",
+        "Added iCloud backup/restore",
+        "Redesigned Logbook (records grouped by month/week)",
+        "Fixed run-ending and voice announcement issues during watch-only runs",
       ],
     },
     {

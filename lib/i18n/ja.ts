@@ -101,7 +101,7 @@ export const ja: SiteDictionary = {
     ],
     actor: {
       quote:
-        "GPSの更新が連続的に発生し、そのたびにペース・距離・GPWS判定を再計算する必要があるため、この計算ロジックをRunningCenter Actorに隔離して状態の整合性を保証しました。心拍数とケイデンスはWatchConnectivityが直接send/receiveし、@Observable ViewModelへ渡します。",
+        "GPSの更新が連続的に発生し、そのたびにペース・距離・GPWS判定を再計算する必要があるため、この計算ロジックをRunningCenter Actorに隔離して状態の整合性を保証しました。心拍数とケイデンスはWatchConnectivityが受け取り、判定ロジックを持たずスレッドセーフに値を保持するだけのHealthCenter Actorに渡され、RunningCenterが必要なときにそこから値を取得して@Observable ViewModelへ渡します。",
     },
     phase: {
       quote: [
@@ -130,6 +130,7 @@ export const ja: SiteDictionary = {
       { label: "SwiftUI", role: "UI" },
       { label: "@MainActor + @Observable", role: "状態管理" },
       { label: "RunningCenter (Actor)", role: "並行処理" },
+      { label: "HealthCenter (Actor)", role: "心拍数/ケイデンスのスレッドセーフな保管" },
       { label: "AsyncStream", role: "センサー → ViewModel" },
       { label: "FlightPhase enum", role: "状態機械" },
       { label: "WatchConnectivity", role: "iPhone ↔ Watch" },
@@ -556,6 +557,63 @@ export const ja: SiteDictionary = {
       verdict:
         "09番でWatch主導ミラーリング自体はなくしたはずだったが、iPhoneがWatchのセッションを受け取り返すコードはまだ残っていた。開始側は今や完全にiPhone一つだけで判断され、終了側はセッションIDで同じランかどうかを確認する形に整理された。",
     },
+    {
+      id: "runningmode-vs-startorigin",
+      number: "11",
+      title: "終了信号が届かない問題 - runningModeからstartOriginへ",
+      status: "RESOLVED",
+      squawk: "iPhoneがstartWatchAppでWatchアプリを直接起動してミラーリングする場合、Watchで終了してもiPhoneのランが終わらない",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "実機での症状",
+          body: "iPhoneがstartWatchAppでWatchアプリを直接起動してミラーリングする場合、Watchでランを終了してもiPhone側のランが全く終わらなかった。",
+        },
+        {
+          tag: "ROOT CAUSE",
+          title: "10番で止めたコードに密かに依存していた",
+          body: "WatchViewModelは自分の終了をiPhoneに知らせるかどうかをrunningMode == .mirroredで判断していたが、runningModeはstartMirroringToCompanionDevice()が成功したときだけ.mirroredに変わる。10番でretrieveRemoteSession()(このハンドシェイクを受け取るリスナー)を止めたため、iPhone側に受け取ってくれるものがなくなり、この呼び出しが失敗してrunningModeがずっと.standaloneのままになり、sendStopSignal()自体が呼ばれなくなっていた。",
+        },
+        {
+          tag: "ACTION",
+          title: "判定基準の入れ替え",
+          body: "判定基準をrunningModeの代わりにstartOrigin != .localに変えた。startOriginはAppDelegate.handle()でこのハンドシェイクの成功可否と関係なく必ず先にセットされ、stopWorkout()もこの値に触れないため、終了時点までそのまま残っている。",
+        },
+      ],
+      verdict:
+        "10番でretrieveRemoteSession()を止めたことによる副作用だった。コードを消すときは、それに密かに寄りかかっていた別のロジック(今回は全く別の関数の判定基準)まで一緒に点検する必要があると改めて感じた。",
+    },
+    {
+      id: "tts-audio-ducking-cross-device",
+      number: "12",
+      title: "kmスプリットのTTSが聞こえない問題 - セッションのアクティブ化とデバイス間のオーディオ分離",
+      status: "KNOWN LIMITATION",
+      squawk: "音楽再生中にkmスプリットの音声案内が聞こえない、あるいはWatch単独ランニングでは全く聞こえない",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "実機での症状",
+          body: "音楽を聴きながら走ってみると、kmスプリットの案内自体が全く聞こえなかった。SpeechAnnouncerServiceはAVAudioSessionを.duckOthersオプションで設定し、案内中だけ音楽を下げるようにしているが、このアクティブ化コードはランニング開始時に一度だけ呼ばれていて、途中で音楽アプリがセッションを奪って中断されると、その後は復旧しなかった。",
+        },
+        {
+          tag: "ACTION",
+          title: "再アクティブ化で一次修正、そして逆の問題",
+          body: "speak()の直前に毎回セッションを再アクティブ化するよう修正したところ、今度は音楽の音量がランニング中ずっと下がったまま戻らなくなった。原因はstart()に残っていたアクティブ化呼び出しだった。ダッキングはspeak()ではなくセッションがアクティブな間ずっとかかるものなので、この呼び出しを削除し、AVSpeechSynthesizerDelegateのdidFinish/didCancelで発話終了と同時に非アクティブ化するようにした。",
+        },
+        {
+          tag: "DISCOVERY",
+          title: "デバイス間でオーディオセッションは分離されている",
+          body: "Watch単独ランニング中にiPhoneで音楽を聴いていると、TTSは全く聞こえなかった。AirPodsは両方のデバイスにBluetoothでペアリングされていても、実際のオーディオストリームは一方のデバイスしか持たない。AVAudioSessionはデバイスごとに完全に独立したインスタンスのため、Watch側の設定がiPhoneのオーディオに影響する方法がない。",
+        },
+        {
+          tag: "FINDING",
+          title: "Nike Run Clubも同じ壁にぶつかっている",
+          body: "コミュニティを調べてみると、Nike Run Clubも全く同じ症状を抱えていて、提示されている解決策も「音楽もWatch自体で再生する」ことだけだった。自分たちのアプリだけのバグではなく、Appleエコシステム全体の構造的な限界だった。",
+        },
+      ],
+      verdict:
+        "オンデバイスのダッキングのバグは2つとも直したが、デバイス間のオーディオセッション分離という根本的な限界はコードでは解決できなかった。代わりにアプリのお知らせ画面に「音楽もApple Watchで再生してほしい」という案内を追加し、ユーザーの行動で回避した。すべての問題がコードで解決するわけではなく、時には正直に案内することも答えになる。",
+    },
   ],
   releases: [
     {
@@ -566,6 +624,9 @@ export const ja: SiteDictionary = {
         "Mission Flightの目標ペース/心拍数表示を改善",
         "地図の終了マーカー表示を変更",
         "設定画面を追加",
+        "iCloudバックアップ/復元機能を追加",
+        "ログブック画面を改善(月/週単位で記録を整理)",
+        "Watch単独ランニング中に発生していた終了/音声案内の問題を修正",
       ],
     },
     {
