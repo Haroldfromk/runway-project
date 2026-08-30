@@ -12,7 +12,7 @@ export interface PrivacyContent {
 }
 
 export const privacyContentKo: PrivacyContent = {
-  lastUpdated: "최종 수정일 - 2026년 7월 29일",
+  lastUpdated: "최종 수정일 - 2026년 8월 19일",
   sections: [
     {
       heading: "개요",
@@ -44,6 +44,10 @@ export const privacyContentKo: PrivacyContent = {
       body: "Apple Watch 앱을 사용하는 경우, 페이스, 거리, 심박수 등의 러닝 데이터는 Apple의 WatchConnectivity 프레임워크를 통해 iPhone과 Apple Watch 간에 직접 전송됩니다. 이 데이터는 사용자의 기기 밖으로 나가지 않습니다.",
     },
     {
+      heading: "리마인더 알림",
+      body: "마지막 러닝으로부터 7일 동안 활동이 없으면, 다시 뛰어볼 때가 됐다고 알려주는 로컬 알림을 보낼 수 있습니다. 이 알림은 기기에 저장된 마지막 러닝 날짜만 참고하며, 어떠한 정보도 외부로 전송하지 않습니다.\n\niOS 설정 > 알림에서 이 기능을 언제든지 끌 수 있습니다.",
+    },
+    {
       heading: "정보에 대한 권한",
       body: "iOS 설정 > 개인정보 보호에서 위치 정보, HealthKit, 동작 및 피트니스 접근 권한을 언제든지 철회할 수 있습니다. 단, 권한을 철회할 경우 앱의 일부 기능이 제한되거나 작동하지 않을 수 있습니다.\n\n앱을 기기에서 삭제하면 로컬에 저장된 모든 러닝 데이터가 함께 삭제됩니다.",
     },
@@ -61,7 +65,7 @@ export const privacyContentKo: PrivacyContent = {
 };
 
 export const privacyContentEn: PrivacyContent = {
-  lastUpdated: "Last updated - July 29, 2026",
+  lastUpdated: "Last updated - August 19, 2026",
   sections: [
     {
       heading: "Overview",
@@ -93,6 +97,10 @@ export const privacyContentEn: PrivacyContent = {
       body: "If you use the Apple Watch app, running data such as pace, distance, and heart rate is transmitted directly between your iPhone and Apple Watch using Apple's WatchConnectivity framework. This data does not leave your devices.",
     },
     {
+      heading: "Reminder Notifications",
+      body: "If there's been no activity for 7 days since your last run, the App may send a local notification letting you know it might be time to run again. This notification only checks the date of your last run stored on your device, and does not transmit any information externally.\n\nYou can turn this off at any time via iOS Settings > Notifications.",
+    },
+    {
       heading: "Your Control Over Data",
       body: "You can revoke Location, HealthKit, or Motion & Fitness permissions at any time via iOS Settings > Privacy & Security. Revoking these permissions may limit or disable certain features of the App.\n\nDeleting the App removes all locally stored running data.",
     },
@@ -110,7 +118,7 @@ export const privacyContentEn: PrivacyContent = {
 };
 
 export const privacyContentJa: PrivacyContent = {
-  lastUpdated: "最終更新日 - 2026年7月29日",
+  lastUpdated: "最終更新日 - 2026年8月19日",
   sections: [
     {
       heading: "概要",
@@ -140,6 +148,10 @@ export const privacyContentJa: PrivacyContent = {
     {
       heading: "Apple Watch連携",
       body: "Apple Watchアプリを使用する場合、ペース、距離、心拍数などのランニングデータは、AppleのWatchConnectivityフレームワークを通じてiPhoneとApple Watch間で直接送信されます。このデータはユーザーのデバイス外に出ることはありません。",
+    },
+    {
+      heading: "リマインダー通知",
+      body: "最後のランニングから7日間活動がない場合、本アプリはそろそろまた走る時間かもしれないとお知らせするローカル通知を送信することがあります。この通知は端末に保存された最後のランニング日付のみを参照し、いかなる情報も外部へ送信しません。\n\niOSの設定 > 通知からこの機能をいつでもオフにできます。",
     },
     {
       heading: "情報に対する権限",

@@ -77,6 +77,7 @@ export const ja: SiteDictionary = {
       { key: "databackup", label: "DATA BACKUP · CloudKit" },
       { key: "alerts", label: "ALERTS · GPWS履歴" },
       { key: "chart", label: "FLIGHT CALENDAR" },
+      { key: "notification", label: "TOWER REMINDERS · リマインダー" },
       { key: "dynamic-island", label: "DYNAMIC ISLAND" },
     ],
     watchShots: [
@@ -616,6 +617,21 @@ export const ja: SiteDictionary = {
     },
   ],
   releases: [
+    {
+      version: "v1.3",
+      date: "2026.08",
+      items: [
+        "Watch単独ランの記録が保存されないことがあった問題を修正",
+        "その場で停止した際の一時停止判定速度を改善",
+        "GPWS警告の種類ごとに異なる振動パターンを追加",
+        "WatchでDigital Crownによる目標距離設定の間隔を修正",
+        "フライトサマリー画面の地図に拡大/縮小機能を追加",
+        "1週間以上ランニングをしていないときに知らせるリマインダー通知を追加",
+        "Alerts画面を月別に整理して表示するよう改善",
+        "ラン記録を個別に削除する機能を追加",
+        "WatchのEND FLIGHTボタンを拡大",
+      ],
+    },
     {
       version: "v1.2",
       date: "2026.07",

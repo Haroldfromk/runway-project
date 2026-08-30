@@ -77,6 +77,7 @@ export const ko: SiteDictionary = {
       { key: "databackup", label: "DATA BACKUP · CloudKit" },
       { key: "alerts", label: "ALERTS · GPWS 기록" },
       { key: "chart", label: "FLIGHT CALENDAR" },
+      { key: "notification", label: "TOWER REMINDERS · 알림" },
       { key: "dynamic-island", label: "DYNAMIC ISLAND" },
     ],
     watchShots: [
@@ -616,6 +617,21 @@ export const ko: SiteDictionary = {
     },
   ],
   releases: [
+    {
+      version: "v1.3",
+      date: "2026.08",
+      items: [
+        "워치 단독 러닝 기록이 간헐적으로 저장되지 않던 문제 수정",
+        "제자리에 멈췄을 때 일시정지 판단 속도 개선",
+        "GPWS 경고 유형별로 다른 진동 패턴 추가",
+        "Watch 목표 거리 설정 시 Digital Crown 간격 수정",
+        "러닝 종료 후 지도 화면 확대/축소 기능 추가",
+        "일주일 이상 러닝을 하지 않으면 알려주는 리마인더 알림 추가",
+        "Alerts 경고 내역을 월별로 정리해서 볼 수 있도록 개선",
+        "러닝 기록 개별 삭제 기능 추가",
+        "Watch END FLIGHT 버튼 확대",
+      ],
+    },
     {
       version: "v1.2",
       date: "2026.07",

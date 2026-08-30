@@ -77,6 +77,7 @@ export const en: SiteDictionary = {
       { key: "databackup", label: "DATA BACKUP · CloudKit" },
       { key: "alerts", label: "ALERTS · GPWS history" },
       { key: "chart", label: "FLIGHT CALENDAR" },
+      { key: "notification", label: "TOWER REMINDERS · Reminder" },
       { key: "dynamic-island", label: "DYNAMIC ISLAND" },
     ],
     watchShots: [
@@ -616,6 +617,21 @@ export const en: SiteDictionary = {
     },
   ],
   releases: [
+    {
+      version: "v1.3",
+      date: "2026.08",
+      items: [
+        "Fixed Watch-only runs occasionally not being saved",
+        "Improved pause detection speed when standing still",
+        "Added distinct haptic patterns per GPWS alert type",
+        "Fixed Digital Crown step spacing when setting the target distance on Watch",
+        "Added pinch-to-zoom on the route map in the flight summary",
+        "Added a reminder notification for when you haven't run in over a week",
+        "Organized the Alerts screen by month",
+        "Added the ability to delete individual run records",
+        "Enlarged the END FLIGHT button on Watch",
+      ],
+    },
     {
       version: "v1.2",
       date: "2026.07",
