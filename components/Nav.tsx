@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { SUPPORTED_LANGS, langLabel, type Lang } from "@/lib/i18n/types";
 import type { SiteDictionary } from "@/lib/i18n/schema";
 
-const sectionIds = ["concept", "screens", "architecture"];
+const sectionIds = ["concept", "screens"];
 
 export default function Nav({ lang, dict }: { lang: Lang; dict: SiteDictionary["nav"] }) {
   const pathname = usePathname();
@@ -16,10 +16,7 @@ export default function Nav({ lang, dict }: { lang: Lang; dict: SiteDictionary["
   const isHome = pathname === homePath;
 
   useEffect(() => {
-    if (!isHome) {
-      setActiveSection(null);
-      return;
-    }
+    if (!isHome) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -97,12 +94,12 @@ export default function Nav({ lang, dict }: { lang: Lang; dict: SiteDictionary["
             )}
           </Link>
           <Link
-            href={`${homePath}#architecture`}
+            href={`${homePath}/architecture`}
             className="rw-mono-label relative shrink-0 pb-1 transition-colors hover:opacity-100"
-            style={{ color: isSectionActive("architecture") ? "var(--rw-green)" : "var(--rw-muted)" }}
+            style={{ color: isPageActive("/architecture") ? "var(--rw-green)" : "var(--rw-muted)" }}
           >
             {dict.architecture}
-            {isSectionActive("architecture") && (
+            {isPageActive("/architecture") && (
               <span
                 className="absolute -bottom-[1px] left-0 h-[1.5px] w-full"
                 style={{ background: "var(--rw-green)" }}

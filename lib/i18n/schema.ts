@@ -26,6 +26,15 @@ export interface StackItem {
   role: string;
 }
 
+export interface SystemsMapNode {
+  id: string;
+  name: string;
+  path: string;
+  desc: string;
+  resp: string[];
+  intent?: string;
+}
+
 export interface FaqItem {
   q: string;
   a: string;
@@ -121,6 +130,17 @@ export interface SiteDictionary {
     };
     stack: StackItem[];
   };
+  architecturePage: {
+    backLabel: string;
+    mapEyebrow: string;
+    mapTitle: string;
+    mapDescription: string[];
+    mapHint: string;
+    bands: string[];
+    intentLabel: string;
+    respLabel: string;
+  };
+  systemsMapNodes: SystemsMapNode[];
   footer: {
     tagline: string;
     description: string[];

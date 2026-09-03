@@ -146,6 +146,210 @@ export const ko: SiteDictionary = {
       { label: "Combine", role: "위치·알림·세션 상태 Publisher + Timer" },
     ],
   },
+  architecturePage: {
+    backLabel: "RunWay 홈으로",
+    mapEyebrow: "System Flow",
+    mapTitle: "전체 시스템맵",
+    mapDescription: [
+      "GPS·심박·고도 센서부터 화면, 저장, 아이폰↔워치 동기화까지 실제 앱을 구성하는",
+      "17개 컴포넌트와 그 사이를 오가는 데이터를 한 장으로 그렸습니다.",
+    ],
+    mapHint: "박스를 클릭하면 오른쪽에 실제 코드가 뜹니다",
+    bands: ["01 · 센서 입력", "02 · 핵심 연산 (actor)", "03 · ViewModel · 기기간 동기화", "04 · 실시간 화면", "05 · 저장", "06 · 기록 열람"],
+    intentLabel: "왜 이렇게 했는가",
+    respLabel: "담당 기능",
+  },
+  systemsMapNodes: [
+    {
+      id: "loc",
+      name: "LocationService",
+      path: "RunWay/Shared/Service/LocationService.swift",
+      desc: "CLLocationManager를 래핑해 위치 업데이트를 발행한다. 10초 이내 · 정확도 50m 이내인 샘플만 통과시킨다.",
+      resp: [
+        "CLLocationManager 래핑, 위치 업데이트를 Combine 퍼블리셔로 발행",
+        "10초 이내 · 수평 정확도 50m 이내 샘플만 통과시키는 필터링",
+        "위치 권한 상태 변화 처리 (요청/제한/거부 알림 발행)",
+        "distanceFilter 없이 정지 중에도 위치를 계속 수신하도록 추적 시작/중단",
+      ],
+    },
+    {
+      id: "health",
+      name: "HealthCenter",
+      path: "RunWay/Shared/Actor/HealthCenter.swift",
+      desc: "백그라운드로 들어오는 심박/케이던스를 스레드 안전하게 보관만 한다. 판정 로직은 RunningCenter가 가져가서 한다.",
+      resp: [
+        "actor로 심박수·케이던스 값을 스레드 안전하게 보관",
+        "판정 로직은 갖지 않고, RunningCenter가 필요할 때 값을 읽어감",
+      ],
+    },
+    {
+      id: "alt",
+      name: "AltimeterService",
+      path: "RunWay/Shared/Service/AltimeterService.swift",
+      desc: "CMAltimeter로 기압계 기반 상대 고도를 수집한다. 기압계가 없는 기기는 아무 값도 발행하지 않는다.",
+      resp: [
+        "CMAltimeter 래핑, 상대 고도 업데이트를 퍼블리셔로 발행",
+        "기압계 없는 기기는 아무 값도 발행 안 함",
+        "온보딩 시점에 권한 팝업만 미리 띄우고 즉시 중단",
+      ],
+    },
+    {
+      id: "core",
+      name: "RunningCenter",
+      path: "RunWay/Shared/Actor/RunningCenter.swift",
+      desc: "모든 러닝 계산의 중심. GPS/심박/고도를 받아 거리·페이스·GPWS·스플릿을 계산해 FlightData 스트림으로 내보낸다.",
+      resp: [
+        "누적 거리 계산, 이중 지수 이동평균(Double EMA)으로 페이스 스무딩",
+        "raw 속도 기반 정지 판단(isStationary), speedAccuracy 신뢰도 체크",
+        "GPWS(SINK RATE/OVERSPEED/MINIMUMS) 판정, 정지 중엔 normal로 리셋",
+        "km 단위 스플릿 기록, 상대 고도 스무딩과 이상치 필터링",
+      ],
+      intent: "iOS와 Watch는 각자 GPS·심박·고도를 따로 받기 때문에, RunningCenter도 기기마다 독립된 인스턴스로 돈다. 정지 판단은 GPS 신뢰도(speedAccuracy)가 낮은 샘플을 걸러가며 확정하는데, 처음엔 이 체크가 정지 판단에만 걸려있고 페이스 계산용 속도 스무딩에는 안 걸려있었다. 오버스피드에 반응해 급감속하는 순간 신뢰도가 자주 음수로 찍히는 바람에, 정지 확정은 안 되는데 스무딩 값만 계속 낮아져 페이스가 무한정 부풀다 앱이 죽는 실사용 버그로 이어졌다. 스무딩 갱신을 같은 신뢰도 체크 안으로 옮기는 것으로 1.3.1에서 해결했다.",
+    },
+    {
+      id: "runvm",
+      name: "RunViewModel",
+      path: "RunWay/ViewModels/RunViewModel.swift",
+      desc: "iPhone 러닝 화면의 핵심 ViewModel. LocationService·RunningCenter·HealthKitService·WatchConnectivityService를 조율한다.",
+      resp: [
+        "LocationService·RunningCenter·HealthKitService·WatchConnectivityService 조율",
+        "Live Activity, 음성 안내(TTS), WeatherKit 날씨 정보 서비스 관리",
+        "러닝 종료 시 SwiftData 저장 및 RunReminderService 재예약",
+        "Watch 미러링 시작/종료, 원격 종료 신호 처리",
+      ],
+    },
+    {
+      id: "watchvm",
+      name: "WatchViewModel",
+      path: "RunWayWatch Watch App/ViewModels/WatchViewModel.swift",
+      desc: "RunViewModel과 동일한 구조를 Watch에 맞게 구현. startOrigin으로 주도 기기/미러링 기기 동작을 가른다.",
+      resp: [
+        "RunViewModel과 동일한 구조를 Watch 환경에 맞게 구현",
+        "startOrigin으로 주도 기기 / 미러링 기기 동작을 분기",
+        "Watch 단독 러닝은 저장까지 직접 처리",
+      ],
+    },
+    {
+      id: "wc",
+      name: "WatchConnectivityService",
+      path: "RunWay/Shared/Service/WatchConnectivityService.swift",
+      desc: "WCSession을 래핑한 기기간 브리지. FlightData는 3초 throttle로, isPaused는 즉시 전송된다.",
+      resp: [
+        "WCSession 래핑, 아이폰↔워치 메시지 송수신",
+        "FlightData는 3초 throttle, isPaused/경과시간은 즉시 전송",
+        "iOS 전용/watchOS 전용 로직은 extension으로 분리",
+      ],
+      intent: "처음엔 미러링 중에도 iPhone과 Watch가 각자 GPS를 잡고 있어서, 주도 기기가 GPS 락을 새로 잡는 동안 화면 전환이 늦어졌다. startOrigin을 기준으로 주도 기기만 위치를 추적하고 계산 결과를 상대에게 보내는 구조로 바꾸면서 중복 연산과 지연이 함께 사라졌다.",
+    },
+    {
+      id: "pfd",
+      name: "PFDView",
+      path: "RunWay/Views/Running/PFDView.swift",
+      desc: "러닝 중 실시간 계기판. SpeedTape, NavDisplay, Mission HUD, GPWS Bar로 구성된다.",
+      resp: [
+        "SpeedTape, NavDisplay, Mission HUD, GPWS Bar로 화면 구성",
+        "GPWS 상태 변화 시 화면 플래시와 햅틱 피드백",
+        "세션이 끊겨도 onDisappear에서 상태 정리",
+      ],
+    },
+    {
+      id: "watchpfd",
+      name: "WatchPFDView",
+      path: "RunWayWatch Watch App/Views/WatchPFDView.swift",
+      desc: "Watch용 실시간 계기판. gpwsStatus에 따라 WatchGPWSView 오버레이 표시 여부를 결정한다.",
+      resp: [
+        "gpwsStatus에 따라 WatchGPWSView 오버레이 표시 여부 결정",
+        "목표(페이스/심박) 기준 실시간 편차 계산",
+      ],
+    },
+    {
+      id: "gpws",
+      name: "WatchGPWSView",
+      path: "RunWayWatch Watch App/Views/WatchGPWSView.swift",
+      desc: "SINK RATE/OVERSPEED 경고 오버레이. 화면이 떠 있는 동안 2초 간격 햅틱 루프가 돈다.",
+      resp: [
+        "SINK RATE/OVERSPEED/MINIMUMS 유형별 경고 오버레이 렌더링",
+        "경고 유형별로 다른 햅틱 패턴을 2초 간격으로 반복",
+        "onDisappear 시 햅틱 즉시 취소",
+      ],
+      intent: "화면을 안 보고 뛸 때도 경고 종류를 구분할 수 있어야 해서, SINK RATE는 위로 두 번 여유 있게, OVERSPEED는 아래로 네 번 빠르게처럼 유형마다 다른 햅틱 패턴을 넣었다. 다만 정지 중 경고를 그대로 '얼리는' 초기 방식은 멈추기 직전 상태가 경고였으면 그 상태가 굳어 진동이 안 꺼지는 문제가 있었고, 얼리는 대신 normal로 되돌리는 방식으로 1.3.1에서 고쳤다.",
+    },
+    {
+      id: "sdmodels",
+      name: "SwiftData Models",
+      path: "RunWay/Models/SwiftData/*.swift",
+      desc: "SwiftDataFlight(러닝 1건) 안에 Split(km 구간)·Alert(GPWS 이력)·Coordinate(좌표)가 cascade로 딸린다.",
+      resp: [
+        "SwiftDataFlight: 러닝 1건의 거리·시간·페이스·심박 요약",
+        "SwiftDataSplit: km 구간별 페이스/심박/케이던스/고도",
+        "SwiftDataAlert: GPWS 경고 발생 시점과 유형 이력",
+        "Flight 삭제 시 연관 데이터 cascade 삭제",
+      ],
+      intent: "CloudKit 동기화를 붙이면서 모든 non-optional 프로퍼티에 선언부 기본값이 필요해졌다. SwiftData의 라이트웨이트 마이그레이션이 init 파라미터가 아니라 선언부 기본값을 보고 기존 레코드를 채우기 때문에, 나중에 필드가 추가돼도 기존 유저의 마이그레이션이 안전하도록 처음부터 전부 기본값을 뒀다.",
+    },
+    {
+      id: "cloud",
+      name: "CloudBackupService",
+      path: "RunWay/Shared/Service/CloudBackupService.swift",
+      desc: "유저가 버튼을 눌렀을 때만 CKRecord를 직접 만들어 CloudKit Private Database에 올리고 받는다.",
+      resp: [
+        "유저가 버튼을 눌렀을 때만 CKRecord를 직접 생성해 업로드/다운로드",
+        "좌표·알림·스플릿 배열은 JSON 인코딩해 필드 하나에 저장",
+      ],
+    },
+    {
+      id: "reminder",
+      name: "RunReminderService",
+      path: "RunWay/Services/RunReminderService.swift",
+      desc: "마지막 러닝 + 7일 시점으로 로컬 알림을 예약한다. 러닝을 저장할 때마다 예약을 새로 잡는다.",
+      resp: [
+        "마지막 러닝 + 7일 시점으로 로컬 알림 예약",
+        "러닝을 새로 저장할 때마다 예약을 다시 잡음",
+        "설정 화면 토글로 켜고 끌 수 있음",
+      ],
+    },
+    {
+      id: "logbook",
+      name: "LogbookView",
+      path: "RunWay/Views/Running/LogbookView.swift",
+      desc: "SwiftDataFlight를 주/월 단위로 그룹핑해서 목록으로 보여준다.",
+      resp: [
+        "SwiftDataFlight를 주 단위로, 다시 월 단위로 그룹핑",
+        "월/주별로 접고 펼치는 목록 UI 제공",
+      ],
+    },
+    {
+      id: "summary",
+      name: "FlightSummaryView",
+      path: "RunWay/Views/Running/FlightSummaryView.swift",
+      desc: "러닝 하나의 상세 화면. MapKit 경로, km 스플릿 차트, GPWS 배지를 보여준다.",
+      resp: [
+        "GPS 좌표로 MapKit 경로 지도 렌더링",
+        "km 스플릿을 나이키 런클럽 스타일 차트로 표시",
+        "스플릿 패턴 배지, GPWS 경고 표시",
+      ],
+    },
+    {
+      id: "alerts",
+      name: "AlertsView",
+      path: "RunWay/Views/Alert/AlertsView.swift",
+      desc: "저장된 SwiftDataAlert를 월별로 묶어 SINK RATE/OVERSPEED/MINIMUMS 이력을 보여준다.",
+      resp: [
+        "SwiftDataAlert를 월별로 그룹핑해서 이력 표시",
+        "SINK RATE/OVERSPEED/MINIMUMS 유형별 아이콘 구분",
+      ],
+    },
+    {
+      id: "calendar",
+      name: "FlightCalendarView",
+      path: "RunWay/Views/Chart/FlightCalendarView.swift",
+      desc: "월간 기록을 GitHub 히트맵 스타일로 보여준다. 날짜별 누적 거리에 따라 색 농도가 달라진다.",
+      resp: [
+        "날짜별 누적 거리에 따라 accent 색 투명도를 달리해 히트맵 렌더링",
+        "월간 총 거리 · 러닝 횟수 · 평균 페이스를 상단 요약 카드로 표시",
+      ],
+    },
+  ],
   footer: {
     tagline: "CLEARED FOR TAKE-OFF",
     description: [
@@ -585,8 +789,101 @@ export const ko: SiteDictionary = {
         "10번에서 retrieveRemoteSession()을 끄면서 생긴 부작용이었다. 코드를 지울 때 그 코드에 은근히 기대고 있던 다른 로직(이번엔 완전히 다른 함수의 판단 기준)까지 같이 점검해야 한다는 걸 다시 느꼈다.",
     },
     {
-      id: "tts-audio-ducking-cross-device",
+      id: "gpws-reset-clears-mission-data",
       number: "12",
+      title: "GPWS 전역 리셋 버그 - 공유 reset()이 미션 목표까지 지움",
+      status: "RESOLVED",
+      squawk: "화면을 전환하거나 러닝을 다시 시작할 때마다 Mission Flight 목표(페이스/거리)가 알 수 없이 사라짐",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "핫픽스 분리 중 발견",
+          body: "아직 머지되지 않은 심박수 브랜치를 v1.0에 급하게 단독 핫픽스로 분리하던 중 발견했다. RunningCenter.reset()이 화면 전환뿐 아니라 start() 안에서도 방어적으로 다시 호출되고 있었는데, 이 호출이 modeAData(미션 목표)까지 매번 지우고 있었다.",
+        },
+        {
+          tag: "ROOT CAUSE",
+          title: "한 함수에 두 가지 책임이 섞여 있었다",
+          body: "start()에서의 방어적 reset()은 원래 elapsedTime/flightData가 이전 값에서 이어지는 걸 막으려던 조치였지, modeAData를 지우려던 의도가 아니었다. 그런데 같은 함수 안에 같이 들어있어서 화면 전환 때도, 재시작 방어 때도 매번 목표 데이터까지 같이 날아갔다.",
+        },
+        {
+          tag: "ACTION",
+          title: "책임 분리",
+          body: "목표 데이터를 지우는 역할을 clearModeAData()로 따로 뺐다. reset()은 더 이상 modeAData를 건드리지 않고, RunViewModel/WatchViewModel의 resetState()에서만 clearModeAData()를 명시적으로 호출하도록 정리했다.",
+        },
+      ],
+      verdict:
+        "\"화면 전환용 정리\"와 \"재시작 방어\"라는 서로 다른 두 목적이 한 함수 안에 같이 들어있으면, 한쪽만 의도한 변경이 다른 쪽까지 건드리는 부작용을 만든다. 책임을 함수 단위로 쪼개는 것만으로 해결됐다.",
+    },
+    {
+      id: "swiftdata-migration-default-value",
+      number: "13",
+      title: "SwiftData 라이트웨이트 마이그레이션 조용한 실패",
+      status: "RESOLVED",
+      squawk: "삭제 후 재설치로만 테스트해서 몰랐던 문제 - 기존 유저가 앱만 업데이트하면 마이그레이션 실패 위험",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "테스트 방식의 사각지대",
+          body: "심박 기반 GPWS를 위해 SwiftDataAlert에 target/heartRate 필드를 추가했는데, 매번 삭제 후 재설치로만 테스트하고 있어서 마이그레이션 경로 자체를 한 번도 안 타보고 있었다.",
+        },
+        {
+          tag: "ROOT CAUSE",
+          title: "init 기본값은 마이그레이션에서 안 보인다",
+          body: "새 필드의 기본값을 init() 파라미터에만 넣어뒀다. SwiftData의 자동 라이트웨이트 마이그레이션은 기존 레코드에 새 필드 값을 채울 때 프로퍼티 선언부의 기본값을 보는데, init 파라미터의 기본값은 여기서 보이지 않는다.",
+        },
+        {
+          tag: "ACTION",
+          title: "선언부에 기본값 직접 명시",
+          body: "프로퍼티 선언부에 직접 기본값을 넣었다. 자료 조사 중 이렇게 해도 크래시가 나는 사례가 있다는 것도 확인했는데, Apple 포럼에서는 이를 \"의도된 동작\"으로 밝혔다. 완전히 안전하게 하려면 VersionedSchema로 필드를 옵셔널로 먼저 마이그레이션한 뒤 필수값으로 바꾸는 멀티스테이지 마이그레이션이 필요하다.",
+        },
+      ],
+      verdict:
+        "삭제 후 재설치 테스트는 마이그레이션 경로 자체를 타지 않는다. 스키마를 바꿀 때마다 최소 한 번은 기존 버전에서 업데이트하는 경로로 확인해야 한다는 걸 배웠다.",
+    },
+    {
+      id: "cloudkit-backup-save-policy-and-index",
+      number: "14",
+      title: "CloudKit 백업 버그 2건 - savePolicy와 queryable 인덱스",
+      status: "RESOLVED",
+      squawk: "두 번째 백업부터 조용히 \"0개 백업했습니다\", CloudKit Dashboard에서는 조회조차 안 됨",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "버그 1 - 두 번째 백업부터 조용히 실패",
+          body: "백업 버튼을 눌러 CloudKit Dashboard에 레코드까지 잘 생겼는데, 두 번째로 누르니 \"0개 백업했습니다\"라고 떴다.",
+        },
+        {
+          tag: "ROOT CAUSE",
+          title: "변경 태그 비교 실패가 조용히 묻혔다",
+          body: "modifyRecords(saving:deleting:)의 기본 저장 정책(.ifServerRecordUnchanged)은 서버 레코드와 변경 태그를 비교하는데, 새로 만든 로컬 레코드엔 그 정보가 없어 충돌로 처리됐다. 게다가 이 실패가 에러를 던지지 않고 레코드별 결과 안에만 담겨서 겉으로는 문제없어 보였다.",
+        },
+        {
+          tag: "ACTION",
+          title: "무조건 덮어쓰기로 전환",
+          body: "savePolicy: .changedKeys로 바꿔서 항상 로컬 상태로 무조건 덮어쓰게 했다.",
+        },
+        {
+          tag: "FINDING",
+          title: "버그 2 - 대시보드에서 조회가 안 됨",
+          body: "백업은 되는데 CloudKit Dashboard에서 조건 없이 전체 조회하면 \"Field 'recordName' is not marked queryable\" 에러가 났다.",
+        },
+        {
+          tag: "ROOT CAUSE",
+          title: "recordName엔 기본 인덱스가 없다",
+          body: "CKQuery로 조회할 때 조건/정렬에 쓰는 필드마다 Queryable 인덱스가 필요한데, recordName은 기본으로 인덱스가 없다. 조건 없는 조회(NSPredicate(value: true))가 내부적으로 recordName을 참조하려다 막힌 것.",
+        },
+        {
+          tag: "RESULT",
+          title: "쿼리 조건 변경 + 인덱스 추가",
+          body: "쿼리를 date 필드 조건 기준으로 바꿔서 recordName 참조 자체를 피했고, CloudKit Dashboard의 Schema > Indexes에서 recordName에 QUERYABLE 인덱스도 직접 추가했다.",
+        },
+      ],
+      verdict:
+        "저장 실패가 에러 없이 결과 값 안에만 조용히 담기는 API라, \"성공처럼 보이는 실패\"를 잡으려면 반환값 자체를 확인하는 습관이 필요했다. CloudKit Dashboard와 앱 코드가 서로 다른 쿼리를 만든다는 점도 헷갈리기 쉬운 지점이었다.",
+    },
+    {
+      id: "tts-audio-ducking-cross-device",
+      number: "15",
       title: "km 스플릿 TTS가 안 들리는 문제 - 세션 활성화와 기기 간 오디오 격리",
       status: "KNOWN LIMITATION",
       squawk: "음악 재생 중 km 스플릿 음성 안내가 안 들리거나, 워치 단독 러닝에서는 아예 안 들림",
@@ -615,8 +912,84 @@ export const ko: SiteDictionary = {
       verdict:
         "온디바이스 덕킹 버그 두 개는 고쳤지만, 기기 간 오디오 세션 격리라는 근본 한계는 코드로 풀 수 없었다. 대신 앱 공지사항에 '음악도 Apple Watch에서 재생해달라'는 안내를 추가해 사용자 행동으로 우회했다. 모든 문제가 코드로 풀리는 건 아니고, 때로는 정직하게 안내하는 것도 답이 된다.",
     },
+    {
+      id: "watch-crown-distance-step-gap",
+      number: "16",
+      title: "Watch 거리 설정 Digital Crown이 애매한 값에서 멈추는 문제",
+      status: "RESOLVED",
+      squawk: "CUSTOM 거리를 Crown으로 조절하면 500m, 600m, 1.1km, 1.6km처럼 어중간한 값에서 멈춤",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "이미 남아있던 TODO",
+          body: "최소값 100m부터 계속 돌려보니 어중간한 값에서 멈추는 걸 발견했다. 코드에는 이미 \"// 수정해야함\"이라는 TODO가 남아있었다.",
+        },
+        {
+          tag: "ROOT CAUSE",
+          title: "시작점이 스텝의 배수가 아니었다",
+          body: "Crown 바인딩이 시작값 0.1(100m)에서 0.5씩 계속 더하는 구조였다. 100m는 0.5의 배수가 아니라서, 그 뒤로 나오는 모든 값이 시작점만큼 계속 밀렸다.",
+        },
+        {
+          tag: "ACTION",
+          title: "값 대신 인덱스로 전환",
+          body: "Crown 값을 거리 자체가 아니라 미리 정해둔 distanceSteps 배열의 인덱스로 바꿨다. 100m는 배열 맨 앞에 예외로 두고, 이후 0.5km 격자에 하프/풀마라톤(21.1km/42.2km)만 중간에 끼워 넣었다. 프리셋 버튼(3K/5K/10K/HALF/FULL)도 값 대신 인덱스를 찾아 설정하도록 같이 고쳤다.",
+        },
+      ],
+      verdict:
+        "시작점과 스텝 크기가 서로 배수 관계가 아니면 그 어긋남이 계속 누적된다는, 흔하지만 놓치기 쉬운 산술 버그였다.",
+    },
+    {
+      id: "sink-rate-stuck-crash",
+      number: "17",
+      title: "SINK RATE 고착과 강제 종료 - 세 번째 손댈 때 드러난 조합 버그",
+      status: "RESOLVED",
+      squawk: "OVERSPEED 후 감속하면 SINK RATE에서 안 풀리고, 편차가 300초까지 치솟다 강제 종료",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "배포 직후 재현",
+          body: "1.3 배포 얼마 안 돼 OVERSPEED 경고에 반응해 속도를 줄였더니 정상적으로 SINK RATE로 바뀌었는데, 다시 속도를 올려도 SINK RATE에서 안 돌아왔다. 편차 숫자는 계속 커지다 300초까지 갔고 결국 워치 앱이 강제 종료됐다.",
+        },
+        {
+          tag: "ROOT CAUSE",
+          title: "정지 판단과 페이스 계산이 서로 다른 걸 보고 있었다",
+          body: "GPS 신뢰도(speedAccuracy)가 음수인 샘플은 정지 판단(isStationary)에서는 확실히 건너뛰는데, 페이스 계산용 속도 스무딩은 이 체크 밖에서 매번 무조건 갱신되고 있었다. 오버스피드에 반응해 속도를 확 줄이는 구간은 신뢰도가 음수로 찍히는 일이 흔해서, 정지 확정은 못 되는데 스무딩 값은 계속 낮은 쪽으로 끌려 내려갔다.",
+        },
+        {
+          tag: "DISCOVERY",
+          title: "심박 모드로 교차 확인",
+          body: "심박 기반 GPWS는 이 스무딩 계산 자체를 거치지 않고 실시간 심박을 그대로 읽어서 쓰는데, 같은 조건에서도 문제가 없었다. 원인이 정확히 페이스 계산 경로에만 있다는 걸 확인해준 단서였다.",
+        },
+        {
+          tag: "ACTION",
+          title: "수정",
+          body: "스무딩 갱신을 정지 판단과 같은 speedAccuracy 체크 안으로 옮겼다. 못 믿을 속도값이면 정지 판단도 페이스 계산도 둘 다 이전 상태를 그대로 유지하게 만든 것.",
+        },
+        {
+          tag: "FINDING",
+          title: "검증 중 두 번째 버그 발견",
+          body: "이 수정을 확인하다 별개로, 멈춰서 쉬는 중에 SINK RATE/OVERSPEED 진동이 안 꺼지고 계속 울리는 걸 발견했다. 정지 중 GPWS를 얼리는 기존 로직이, 멈추기 직전 상태가 하필 경고였으면 그 상태가 그대로 굳어 경고 화면과 반복 햅틱이 계속되게 만들고 있었다.",
+        },
+        {
+          tag: "RESULT",
+          title: "얼리기 대신 되돌리기",
+          body: "정지 중엔 얼리는 대신 normal로 되돌리도록 바꿨다. 심박 하강으로 새 경고가 뜨는 것도 여전히 막히고, 멈추기 직전 경고가 있었어도 멈추는 순간 바로 꺼진다. 1.3.1로 배포.",
+        },
+      ],
+      verdict:
+        "이 버그는 한 번에 생긴 게 아니라 v1.3 준비하면서 두 번에 걸쳐 손댄 로직이 겹쳐서 만들어졌다. 정지 판단 방식 자체를 raw 속도 기반으로 갈아엎은 게 먼저였고, 그 다음엔 완전히 다른 이유로(심박 하강 오탐 방지) 얼리는 로직을 추가했다. 각각은 그 순간엔 멀쩡한 이유로 손댄 건데, 정지 판단 쪽 규칙이 나중에 추가한 얼리기 로직의 전제를 깰 수 있다는 건 그땐 몰랐다. 코드 한 부분만 보고는 못 잡는, 두 변경 사이의 관계에서만 드러나는 버그였다.",
+    },
   ],
   releases: [
+    {
+      version: "v1.3.1",
+      date: "2026.09",
+      items: [
+        "OVERSPEED/SINK RATE 경고 후 NORMAL로 돌아오지 않고 앱이 강제 종료되던 문제 수정",
+        "일시정지 중에도 GPWS 경고 진동이 계속 울리던 문제 수정",
+        "설정에서 7일 무활동 리마인더 알림을 끌 수 있는 옵션 추가",
+      ],
+    },
     {
       version: "v1.3",
       date: "2026.08",

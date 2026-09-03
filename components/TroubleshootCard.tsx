@@ -78,10 +78,10 @@ export default function TroubleshootCard({
       </button>
 
       <div
-        className="grid transition-all duration-300 ease-out"
-        style={{ gridTemplateRows: open ? "1fr" : "0fr" }}
+        className="overflow-hidden transition-[max-height] duration-300 ease-out"
+        style={{ maxHeight: open ? "3000px" : "0px" }}
       >
-        <div className="overflow-hidden">
+        <div>
           <div
             className="border-t px-5 pb-7 pt-6 sm:px-7"
             style={{ borderColor: "var(--rw-border)" }}

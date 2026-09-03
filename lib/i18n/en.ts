@@ -146,6 +146,210 @@ export const en: SiteDictionary = {
       { label: "Combine", role: "Location, alert, session-state publishers + timer" },
     ],
   },
+  architecturePage: {
+    backLabel: "Back to RunWay",
+    mapEyebrow: "System Flow",
+    mapTitle: "Full Systems Map",
+    mapDescription: [
+      "From GPS, heart rate and altitude sensors through the screens, storage, and",
+      "iPhone-Watch sync, all 17 components that make up the app on one map.",
+    ],
+    mapHint: "Click a box to see its real code on the right",
+    bands: ["01 · Sensor Input", "02 · Core Compute (actor)", "03 · ViewModel · Cross-Device Sync", "04 · Live Screens", "05 · Persistence", "06 · History"],
+    intentLabel: "Why It's Built This Way",
+    respLabel: "Responsibilities",
+  },
+  systemsMapNodes: [
+    {
+      id: "loc",
+      name: "LocationService",
+      path: "RunWay/Shared/Service/LocationService.swift",
+      desc: "Wraps CLLocationManager and publishes location updates. Only samples within 10s and 50m horizontal accuracy pass through.",
+      resp: [
+        "Wraps CLLocationManager, publishes location updates as a Combine publisher",
+        "Filters to samples within 10s and 50m horizontal accuracy",
+        "Handles authorization status changes (requests, restricted/denied alerts)",
+        "Starts/stops tracking with no distanceFilter, so location keeps arriving while stationary",
+      ],
+    },
+    {
+      id: "health",
+      name: "HealthCenter",
+      path: "RunWay/Shared/Actor/HealthCenter.swift",
+      desc: "Holds incoming heart rate/cadence thread-safely in the background. No judgement logic — RunningCenter reads the value when it needs it.",
+      resp: [
+        "Holds heart rate and cadence thread-safely as an actor",
+        "No judgement logic of its own — RunningCenter reads the value when needed",
+      ],
+    },
+    {
+      id: "alt",
+      name: "AltimeterService",
+      path: "RunWay/Shared/Service/AltimeterService.swift",
+      desc: "Collects barometer-based relative altitude via CMAltimeter. Devices without a barometer publish nothing.",
+      resp: [
+        "Wraps CMAltimeter, publishes relative altitude updates",
+        "Publishes nothing on devices without a barometer",
+        "Fires the permission prompt early during onboarding, then stops immediately",
+      ],
+    },
+    {
+      id: "core",
+      name: "RunningCenter",
+      path: "RunWay/Shared/Actor/RunningCenter.swift",
+      desc: "The center of every running calculation. Takes GPS/heart rate/altitude in, computes distance, pace, GPWS, and splits, and streams out FlightData.",
+      resp: [
+        "Accumulates distance, smooths pace with a double exponential moving average",
+        "Raw-speed-based stationary detection (isStationary), gated by speedAccuracy confidence",
+        "GPWS (SINK RATE/OVERSPEED/MINIMUMS) judgement, reset to normal while stationary",
+        "Records km splits, smooths and filters outliers in relative altitude",
+      ],
+      intent: "iOS and Watch each receive GPS, heart rate, and altitude independently, so RunningCenter also runs as a separate instance per device. Stationary detection confirms only after filtering out samples with low GPS confidence (speedAccuracy) — but at first that check only gated stationary detection, not the speed smoothing used for pace. The moment you slow down hard in response to OVERSPEED is exactly when GPS confidence tends to go negative, so stationary detection never confirmed while the smoothed speed kept getting pulled toward zero, inflating pace until the app crashed. Fixed in 1.3.1 by moving the smoothing update inside the same confidence check.",
+    },
+    {
+      id: "runvm",
+      name: "RunViewModel",
+      path: "RunWay/ViewModels/RunViewModel.swift",
+      desc: "The core ViewModel for the iPhone running screen. Coordinates LocationService, RunningCenter, HealthKitService, and WatchConnectivityService.",
+      resp: [
+        "Coordinates LocationService, RunningCenter, HealthKitService, and WatchConnectivityService",
+        "Manages Live Activity, voice announcements (TTS), and WeatherKit weather data",
+        "Saves to SwiftData and reschedules RunReminderService when a run ends",
+        "Handles Watch mirroring start/stop and remote-stop signals",
+      ],
+    },
+    {
+      id: "watchvm",
+      name: "WatchViewModel",
+      path: "RunWayWatch Watch App/ViewModels/WatchViewModel.swift",
+      desc: "The same structure as RunViewModel, adapted for Watch. startOrigin decides whether this device is driving or mirroring.",
+      resp: [
+        "Implements the same structure as RunViewModel, adapted for Watch",
+        "Branches driving vs. mirroring device behavior based on startOrigin",
+        "Handles saving directly for Watch-only runs",
+      ],
+    },
+    {
+      id: "wc",
+      name: "WatchConnectivityService",
+      path: "RunWay/Shared/Service/WatchConnectivityService.swift",
+      desc: "The cross-device bridge wrapping WCSession. FlightData is throttled to 3s; isPaused is sent immediately.",
+      resp: [
+        "Wraps WCSession, sends/receives messages between iPhone and Watch",
+        "Throttles FlightData to 3s; sends isPaused and elapsed time immediately",
+        "Splits iOS-only and watchOS-only logic into separate extensions",
+      ],
+      intent: "Early on, both iPhone and Watch tracked GPS independently even while mirroring, so switching screens lagged while the driving device re-acquired a GPS lock. Restructuring around startOrigin so only the driving device tracks location and sends results to the other side eliminated both the duplicate computation and the lag.",
+    },
+    {
+      id: "pfd",
+      name: "PFDView",
+      path: "RunWay/Views/Running/PFDView.swift",
+      desc: "The live instrument panel during a run. Made up of SpeedTape, NavDisplay, Mission HUD, and the GPWS bar.",
+      resp: [
+        "Composes SpeedTape, NavDisplay, Mission HUD, and the GPWS bar",
+        "Flashes the screen and triggers haptics on GPWS state changes",
+        "Cleans up state in onDisappear even if the session is interrupted",
+      ],
+    },
+    {
+      id: "watchpfd",
+      name: "WatchPFDView",
+      path: "RunWayWatch Watch App/Views/WatchPFDView.swift",
+      desc: "The Watch's live instrument panel. Decides whether to show the WatchGPWSView overlay based on gpwsStatus.",
+      resp: [
+        "Decides whether to show the WatchGPWSView overlay based on gpwsStatus",
+        "Computes live deviation from the target (pace or heart rate)",
+      ],
+    },
+    {
+      id: "gpws",
+      name: "WatchGPWSView",
+      path: "RunWayWatch Watch App/Views/WatchGPWSView.swift",
+      desc: "The SINK RATE/OVERSPEED warning overlay. Repeats a haptic pattern every 2 seconds while it's on screen.",
+      resp: [
+        "Renders the warning overlay per type (SINK RATE/OVERSPEED/MINIMUMS)",
+        "Repeats a distinct haptic pattern per warning type every 2 seconds",
+        "Cancels the haptic task immediately on onDisappear",
+      ],
+      intent: "Since you're often not looking at the screen while running, each warning type needed to feel different by touch alone — SINK RATE is two unhurried upward taps, OVERSPEED is four quick downward ones. The original approach of 'freezing' GPWS while stationary meant that if the state right before you stopped happened to be a warning, it stayed frozen and kept buzzing. Fixed in 1.3.1 by resetting to normal instead of freezing.",
+    },
+    {
+      id: "sdmodels",
+      name: "SwiftData Models",
+      path: "RunWay/Models/SwiftData/*.swift",
+      desc: "SwiftDataFlight (one run) cascades to Split (km segments), Alert (GPWS history), and Coordinate (route points).",
+      resp: [
+        "SwiftDataFlight: distance, time, pace, and heart rate summary for one run",
+        "SwiftDataSplit: pace/heart rate/cadence/elevation per km segment",
+        "SwiftDataAlert: when and what type of GPWS warning fired",
+        "Deleting a Flight cascades to its related records",
+      ],
+      intent: "Adding CloudKit sync meant every non-optional property needed a declaration-site default value. SwiftData's lightweight migration fills in existing records based on those defaults, not init parameters, so every field got a default from the start to keep existing users' migrations safe as new fields get added later.",
+    },
+    {
+      id: "cloud",
+      name: "CloudBackupService",
+      path: "RunWay/Shared/Service/CloudBackupService.swift",
+      desc: "Builds a CKRecord by hand and uploads/downloads it, but only when the user taps the button.",
+      resp: [
+        "Builds a CKRecord by hand and uploads/downloads it, only when the user taps the button",
+        "Encodes coordinates, alerts, and splits as JSON into a single field",
+      ],
+    },
+    {
+      id: "reminder",
+      name: "RunReminderService",
+      path: "RunWay/Services/RunReminderService.swift",
+      desc: "Schedules a local notification for last-run-date + 7 days. Reschedules every time a run is saved.",
+      resp: [
+        "Schedules a local notification for last-run-date + 7 days",
+        "Reschedules every time a new run is saved",
+        "Can be turned on/off from a Settings toggle",
+      ],
+    },
+    {
+      id: "logbook",
+      name: "LogbookView",
+      path: "RunWay/Views/Running/LogbookView.swift",
+      desc: "Groups SwiftDataFlight records by week, then by month, into a list.",
+      resp: [
+        "Groups SwiftDataFlight by week, then by month",
+        "Provides a collapsible/expandable list UI per month/week",
+      ],
+    },
+    {
+      id: "summary",
+      name: "FlightSummaryView",
+      path: "RunWay/Views/Running/FlightSummaryView.swift",
+      desc: "The detail screen for a single run. Shows the MapKit route, a km split chart, and GPWS badges.",
+      resp: [
+        "Renders the MapKit route from GPS coordinates",
+        "Shows km splits as a Nike Run Club-style chart",
+        "Shows the split-pattern badge and any GPWS warnings",
+      ],
+    },
+    {
+      id: "alerts",
+      name: "AlertsView",
+      path: "RunWay/Views/Alert/AlertsView.swift",
+      desc: "Groups saved SwiftDataAlert records by month, showing SINK RATE/OVERSPEED/MINIMUMS history.",
+      resp: [
+        "Groups SwiftDataAlert by month to show history",
+        "Distinguishes SINK RATE/OVERSPEED/MINIMUMS with separate icons",
+      ],
+    },
+    {
+      id: "calendar",
+      name: "FlightCalendarView",
+      path: "RunWay/Views/Chart/FlightCalendarView.swift",
+      desc: "Shows monthly runs as a GitHub-style heatmap, with color intensity scaled to daily distance.",
+      resp: [
+        "Renders a heatmap where color opacity scales with daily distance",
+        "Shows monthly total distance, run count, and average pace in a summary card",
+      ],
+    },
+  ],
   footer: {
     tagline: "CLEARED FOR TAKE-OFF",
     description: [
@@ -585,8 +789,101 @@ export const en: SiteDictionary = {
         "A side effect of disabling retrieveRemoteSession() in entry #10. A reminder that removing code means checking what else was quietly leaning on it too - this time, a completely different function's branching logic.",
     },
     {
-      id: "tts-audio-ducking-cross-device",
+      id: "gpws-reset-clears-mission-data",
       number: "12",
+      title: "Shared reset() Wiping Mission Targets Along With Everything Else",
+      status: "RESOLVED",
+      squawk: "Mission Flight targets (pace/distance) kept vanishing on screen transitions or restarts, with no obvious cause",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "Found while splitting off a hotfix",
+          body: "Found this while rushing an unmerged heart-rate branch out as a standalone v1.0 hotfix. RunningCenter.reset() was called defensively not just on screen transitions but inside start() too - and that call was wiping modeAData (the mission target) every single time.",
+        },
+        {
+          tag: "ROOT CAUSE",
+          title: "One function, two unrelated jobs",
+          body: "The defensive reset() in start() only existed to stop elapsedTime/flightData from carrying over stale values - it was never meant to touch modeAData. But because both lived in the same function, every screen transition and every restart guard wiped the mission target too.",
+        },
+        {
+          tag: "ACTION",
+          title: "Split the responsibility",
+          body: "Pulled target-clearing out into its own clearModeAData(). reset() no longer touches modeAData at all, and only RunViewModel/WatchViewModel's resetState() calls clearModeAData() explicitly.",
+        },
+      ],
+      verdict:
+        "When two unrelated jobs - \"cleanup for a screen transition\" and \"defensive reset on restart\" - live in the same function, a change meant for one keeps leaking into the other. Splitting responsibility by function was the whole fix.",
+    },
+    {
+      id: "swiftdata-migration-default-value",
+      number: "13",
+      title: "SwiftData's Silent Lightweight Migration Failure",
+      status: "RESOLVED",
+      squawk: "Only ever tested by delete-and-reinstall, which meant existing users updating in place risked a failed migration",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "A blind spot in the test method",
+          body: "Added target/heartRate fields to SwiftDataAlert for heart-rate-based GPWS, but every test cycle so far had been delete-and-reinstall - meaning the actual migration path had never once been exercised.",
+        },
+        {
+          tag: "ROOT CAUSE",
+          title: "init defaults are invisible to migration",
+          body: "The new fields' defaults lived only in the init() parameters. SwiftData's automatic lightweight migration fills in new fields on existing records by reading the property declaration's default value - init parameter defaults aren't visible to it at all.",
+        },
+        {
+          tag: "ACTION",
+          title: "Move the default onto the declaration",
+          body: "Added the default value directly at the property declaration. Further research turned up cases where crashes still happen even with that in place - Apple's own forums call this \"expected behavior.\" A fully safe path needs a multi-stage VersionedSchema migration: optional first, then promoted to required.",
+        },
+      ],
+      verdict:
+        "Delete-and-reinstall testing never exercises the migration path at all. Any schema change now gets checked at least once via an in-place update from the prior version.",
+    },
+    {
+      id: "cloudkit-backup-save-policy-and-index",
+      number: "14",
+      title: "Two CloudKit Backup Bugs - Save Policy and a Missing Queryable Index",
+      status: "RESOLVED",
+      squawk: "The second backup onward silently reported \"0 backed up,\" and the CloudKit Dashboard couldn't even query the records",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "Bug 1 - silently failing from the second backup on",
+          body: "The backup button created records fine in the CloudKit Dashboard the first time, but the second press reported \"0 backed up.\"",
+        },
+        {
+          tag: "ROOT CAUSE",
+          title: "A change-tag mismatch buried inside the result",
+          body: "modifyRecords(saving:deleting:)'s default save policy (.ifServerRecordUnchanged) compares against the server record's change tag, but a freshly-created local record has none - so it reads as a conflict and fails. That failure never throws; it's buried inside the per-record Result, so nothing looked wrong on the surface.",
+        },
+        {
+          tag: "ACTION",
+          title: "Switched to unconditional overwrite",
+          body: "Switched to savePolicy: .changedKeys so the local state always wins.",
+        },
+        {
+          tag: "FINDING",
+          title: "Bug 2 - the Dashboard couldn't query it",
+          body: "Backups succeeded, but an unconditional query in the CloudKit Dashboard threw \"Field 'recordName' is not marked queryable.\"",
+        },
+        {
+          tag: "ROOT CAUSE",
+          title: "recordName has no index by default",
+          body: "CKQuery needs a Queryable index on any field used in a condition or sort, and recordName doesn't get one by default. An unconditional query (NSPredicate(value: true)) was internally falling back to recordName and hitting that wall.",
+        },
+        {
+          tag: "RESULT",
+          title: "Changed the query and added the index",
+          body: "Rewrote the query to filter on the date field instead, sidestepping recordName entirely, and added a QUERYABLE index on recordName from Schema > Indexes in the Dashboard as well.",
+        },
+      ],
+      verdict:
+        "An API that buries failures inside a result value instead of throwing means \"success-shaped failures\" need the return value itself checked, not just the absence of an error. It's also easy to forget that the Dashboard's own query and the app's code can hit CloudKit very differently.",
+    },
+    {
+      id: "tts-audio-ducking-cross-device",
+      number: "15",
       title: "km-split TTS goes unheard - session activation and cross-device audio isolation",
       status: "KNOWN LIMITATION",
       squawk: "km-split voice announcements go unheard while music plays, and never come through at all during watch-only runs",
@@ -615,8 +912,84 @@ export const en: SiteDictionary = {
       verdict:
         "Fixed both on-device ducking bugs, but the cross-device audio isolation itself can't be solved in code. Added a note in the app's announcements screen instead, asking users to play music from the Watch itself. Not every problem gets solved by code. Sometimes an honest heads-up is the actual answer.",
     },
+    {
+      id: "watch-crown-distance-step-gap",
+      number: "16",
+      title: "Watch Distance Crown Stopping on Awkward Values",
+      status: "RESOLVED",
+      squawk: "Turning the Digital Crown to set a CUSTOM distance landed on odd values like 500m, 600m, 1.1km, 1.6km",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "A TODO already sitting in the code",
+          body: "Turning the crown from the 100m minimum kept landing on awkward values. A \"// needs fixing\" comment was already sitting right there in the code.",
+        },
+        {
+          tag: "ROOT CAUSE",
+          title: "The starting point wasn't a multiple of the step",
+          body: "The crown binding started at 0.1 (100m) and added 0.5 each turn. Since 100m isn't a multiple of 0.5, every value after it inherited that same offset.",
+        },
+        {
+          tag: "ACTION",
+          title: "Switched to indexing a step array",
+          body: "Changed the crown to drive an index into a precomputed distanceSteps array instead of the distance itself. 100m sits as a one-off exception at the front, followed by a clean 0.5km grid with half/full marathon (21.1km/42.2km) slotted in. Preset buttons (3K/5K/10K/HALF/FULL) were switched to look up their index too.",
+        },
+      ],
+      verdict:
+        "A common but easy-to-miss arithmetic bug - when the starting point and the step size aren't multiples of each other, that mismatch just keeps compounding.",
+    },
+    {
+      id: "sink-rate-stuck-crash",
+      number: "17",
+      title: "SINK RATE Stuck and Force Quit - a Combination Bug That Only Showed Up on the Third Pass",
+      status: "RESOLVED",
+      squawk: "Slowing down after OVERSPEED gets stuck on SINK RATE, deviation climbs to 300 seconds, then the app force-quits",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "Reproduced right after release",
+          body: "Shortly after 1.3 shipped, slowing down in response to an OVERSPEED warning correctly switched to SINK RATE, but speeding back up never returned it to NORMAL. The deviation number kept climbing to 300 seconds, and the Watch app eventually force-quit.",
+        },
+        {
+          tag: "ROOT CAUSE",
+          title: "Stationary detection and pace calculation were watching different things",
+          body: "Samples with negative GPS confidence (speedAccuracy) were reliably skipped by stationary detection (isStationary), but the speed smoothing used for pace calculation kept updating unconditionally outside that check. The moment you slow down hard in response to OVERSPEED is exactly when GPS confidence tends to go negative, so stationary detection never confirmed while the smoothed speed kept getting pulled toward zero.",
+        },
+        {
+          tag: "DISCOVERY",
+          title: "Cross-checked with heart-rate mode",
+          body: "Heart-rate-based GPWS doesn't go through this smoothing calculation at all - it reads live heart rate directly - and it had no problem under the same conditions. That confirmed the bug lived specifically in the pace calculation path.",
+        },
+        {
+          tag: "ACTION",
+          title: "Fix",
+          body: "Moved the smoothing update inside the same speedAccuracy check as stationary detection. An untrustworthy speed sample now leaves both stationary detection and pace calculation exactly where they were.",
+        },
+        {
+          tag: "FINDING",
+          title: "A second bug found while verifying the fix",
+          body: "While confirming this fix, a separate issue turned up: SINK RATE/OVERSPEED haptics kept buzzing the whole time you were resting. The existing logic that froze GPWS while stationary meant that if the state right before you stopped happened to be a warning, that warning stayed frozen, keeping the alert screen and its repeating haptic loop running.",
+        },
+        {
+          tag: "RESULT",
+          title: "Reset instead of freeze",
+          body: "Changed it so pausing resets GPWS to normal instead of freezing it. New false alerts from a resting heart rate are still suppressed, and any warning active right before stopping now clears the instant you stop. Shipped as 1.3.1.",
+        },
+      ],
+      verdict:
+        "This bug wasn't introduced all at once, it came from two separate changes made while preparing v1.3 overlapping. First, stationary detection was reworked from scratch around raw speed. Later, for a completely unrelated reason (suppressing false alerts from a resting heart rate), freeze-while-stationary logic was added on top. Each change was reasonable on its own; nobody realized at the time that the rule in stationary detection could break the assumption the later freeze logic depended on. It was a bug that only showed up in the relationship between two changes, not in either one read alone.",
+    },
   ],
   releases: [
+    {
+      version: "v1.3.1",
+      date: "2026.09",
+      items: [
+        "Fixed GPWS getting stuck after OVERSPEED/SINK RATE and causing a crash",
+        "Fixed GPWS haptic alerts continuing to vibrate while paused",
+        "Added a Settings option to turn off the 7-day inactivity reminder",
+      ],
+    },
     {
       version: "v1.3",
       date: "2026.08",

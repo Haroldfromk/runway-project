@@ -146,6 +146,210 @@ export const ja: SiteDictionary = {
       { label: "Combine", role: "位置情報・アラート・セッション状態のPublisher + Timer" },
     ],
   },
+  architecturePage: {
+    backLabel: "RunWayホームへ",
+    mapEyebrow: "System Flow",
+    mapTitle: "全体システムマップ",
+    mapDescription: [
+      "GPS・心拍・高度センサーから画面、保存、iPhone↔Watch同期まで、実際のアプリを",
+      "構成する17個のコンポーネントとその間を行き来するデータを一枚にまとめました。",
+    ],
+    mapHint: "ボックスをクリックすると右側に実際のコードが表示されます",
+    bands: ["01・センサー入力", "02・コア演算(actor)", "03・ViewModel・端末間同期", "04・リアルタイム画面", "05・保存", "06・記録閲覧"],
+    intentLabel: "なぜこの設計にしたのか",
+    respLabel: "担当機能",
+  },
+  systemsMapNodes: [
+    {
+      id: "loc",
+      name: "LocationService",
+      path: "RunWay/Shared/Service/LocationService.swift",
+      desc: "CLLocationManagerをラップし、位置更新を発行する。10秒以内・精度50m以内のサンプルのみ通過させる。",
+      resp: [
+        "CLLocationManagerをラップし、位置更新をCombineパブリッシャーとして発行",
+        "10秒以内・水平精度50m以内のサンプルのみ通過させるフィルタリング",
+        "位置情報権限の状態変化を処理(リクエスト/制限/拒否の通知発行)",
+        "distanceFilterなしで、停止中も位置を受信し続けるよう追跡を開始/停止",
+      ],
+    },
+    {
+      id: "health",
+      name: "HealthCenter",
+      path: "RunWay/Shared/Actor/HealthCenter.swift",
+      desc: "バックグラウンドで届く心拍数/ケイデンスをスレッドセーフに保持するだけ。判定ロジックはRunningCenter側が持つ。",
+      resp: [
+        "actorとして心拍数・ケイデンスの値をスレッドセーフに保持",
+        "判定ロジックは持たず、RunningCenterが必要なときに値を読み取る",
+      ],
+    },
+    {
+      id: "alt",
+      name: "AltimeterService",
+      path: "RunWay/Shared/Service/AltimeterService.swift",
+      desc: "CMAltimeterで気圧計ベースの相対高度を収集する。気圧計のない端末は値を一切発行しない。",
+      resp: [
+        "CMAltimeterをラップし、相対高度更新をパブリッシャーとして発行",
+        "気圧計のない端末では何も発行しない",
+        "オンボーディング時点で権限ポップアップだけ先に表示し即座に停止",
+      ],
+    },
+    {
+      id: "core",
+      name: "RunningCenter",
+      path: "RunWay/Shared/Actor/RunningCenter.swift",
+      desc: "すべてのランニング計算の中心。GPS/心拍/高度を受け取り、距離・ペース・GPWS・スプリットを計算してFlightDataストリームへ送り出す。",
+      resp: [
+        "累積距離の計算、二重指数移動平均(Double EMA)によるペーススムージング",
+        "raw速度ベースの停止判定(isStationary)、speedAccuracyによる信頼度チェック",
+        "GPWS(SINK RATE/OVERSPEED/MINIMUMS)判定、停止中はnormalへリセット",
+        "km単位のスプリット記録、相対高度のスムージングと外れ値フィルタリング",
+      ],
+      intent: "iOSとWatchはそれぞれ独立にGPS・心拍・高度を受け取るため、RunningCenterも端末ごとに別インスタンスとして動く。停止判定はGPS信頼度(speedAccuracy)が低いサンプルを除外しながら確定するが、当初はこのチェックが停止判定にしか掛かっておらず、ペース計算用の速度スムージングには掛かっていなかった。OVERSPEEDに反応して急減速する瞬間はまさに信頼度が負になりやすく、停止確定はできないままスムージング値だけが下がり続けてペースが際限なく膨らみ、アプリがクラッシュする実害につながった。スムージング更新を同じ信頼度チェックの中に移すことで1.3.1で解決した。",
+    },
+    {
+      id: "runvm",
+      name: "RunViewModel",
+      path: "RunWay/ViewModels/RunViewModel.swift",
+      desc: "iPhoneランニング画面の中核ViewModel。LocationService・RunningCenter・HealthKitService・WatchConnectivityServiceを統括する。",
+      resp: [
+        "LocationService・RunningCenter・HealthKitService・WatchConnectivityServiceを統括",
+        "Live Activity、音声案内(TTS)、WeatherKit天気情報サービスを管理",
+        "ラン終了時のSwiftData保存とRunReminderServiceの再予約",
+        "Watchミラーリングの開始/終了、リモート終了信号の処理",
+      ],
+    },
+    {
+      id: "watchvm",
+      name: "WatchViewModel",
+      path: "RunWayWatch Watch App/ViewModels/WatchViewModel.swift",
+      desc: "RunViewModelと同じ構造をWatch向けに実装。startOriginで主導端末/ミラーリング端末の動作を分岐する。",
+      resp: [
+        "RunViewModelと同じ構造をWatch環境向けに実装",
+        "startOriginで主導端末/ミラーリング端末の動作を分岐",
+        "Watch単独ランは保存まで直接処理",
+      ],
+    },
+    {
+      id: "wc",
+      name: "WatchConnectivityService",
+      path: "RunWay/Shared/Service/WatchConnectivityService.swift",
+      desc: "WCSessionをラップした端末間ブリッジ。FlightDataは3秒throttle、isPausedは即座に送信される。",
+      resp: [
+        "WCSessionをラップし、iPhone↔Watch間でメッセージを送受信",
+        "FlightDataは3秒throttle、isPaused/経過時間は即座に送信",
+        "iOS専用/watchOS専用ロジックはそれぞれextensionに分離",
+      ],
+      intent: "当初はミラーリング中でもiPhoneとWatchがそれぞれ独自にGPSを取得しており、主導端末がGPSロックを再取得する間、画面切り替えが遅延していた。startOriginを基準に主導端末のみが位置を追跡し、計算結果を相手に送る構造に変更したことで、重複した計算と遅延の両方が解消された。",
+    },
+    {
+      id: "pfd",
+      name: "PFDView",
+      path: "RunWay/Views/Running/PFDView.swift",
+      desc: "ラン中のリアルタイム計器パネル。SpeedTape、NavDisplay、Mission HUD、GPWS Barで構成される。",
+      resp: [
+        "SpeedTape、NavDisplay、Mission HUD、GPWS Barで画面を構成",
+        "GPWS状態変化時に画面フラッシュとハプティックフィードバック",
+        "セッションが中断してもonDisappearで状態を整理",
+      ],
+    },
+    {
+      id: "watchpfd",
+      name: "WatchPFDView",
+      path: "RunWayWatch Watch App/Views/WatchPFDView.swift",
+      desc: "Watch用リアルタイム計器パネル。gpwsStatusに応じてWatchGPWSViewオーバーレイの表示可否を決める。",
+      resp: [
+        "gpwsStatusに応じてWatchGPWSViewオーバーレイの表示可否を決定",
+        "目標(ペース/心拍)に対するリアルタイム偏差を計算",
+      ],
+    },
+    {
+      id: "gpws",
+      name: "WatchGPWSView",
+      path: "RunWayWatch Watch App/Views/WatchGPWSView.swift",
+      desc: "SINK RATE/OVERSPEED警告オーバーレイ。画面が表示されている間、2秒間隔の振動ループが回る。",
+      resp: [
+        "SINK RATE/OVERSPEED/MINIMUMSタイプ別の警告オーバーレイを描画",
+        "警告タイプごとに異なるハプティックパターンを2秒間隔で繰り返す",
+        "onDisappear時にハプティックを即座にキャンセル",
+      ],
+      intent: "画面を見ずに走っているときでも警告の種類を区別できる必要があり、SINK RATEは上方向に余裕を持って2回、OVERSPEEDは下方向に素早く4回というように、タイプごとに異なるハプティックパターンを入れた。ただし停止中に警告状態をそのまま「凍結」する当初の方式は、停止直前がたまたま警告状態だった場合その状態のまま固まり振動が止まらない問題があり、凍結の代わりにnormalへ戻す方式に1.3.1で修正した。",
+    },
+    {
+      id: "sdmodels",
+      name: "SwiftData Models",
+      path: "RunWay/Models/SwiftData/*.swift",
+      desc: "SwiftDataFlight(ラン1件)にSplit(km区間)・Alert(GPWS履歴)・Coordinate(座標)がcascadeで紐づく。",
+      resp: [
+        "SwiftDataFlight: ラン1件の距離・時間・ペース・心拍サマリー",
+        "SwiftDataSplit: km区間ごとのペース/心拍/ケイデンス/高度",
+        "SwiftDataAlert: GPWS警告の発生時点とタイプの履歴",
+        "Flight削除時に関連データをcascade削除",
+      ],
+      intent: "CloudKit同期を追加したことで、すべてのnon-optionalプロパティに宣言部でのデフォルト値が必要になった。SwiftDataの軽量マイグレーションはinitパラメータではなく宣言部のデフォルト値を見て既存レコードを埋めるため、後からフィールドが追加されても既存ユーザーのマイグレーションが安全に保たれるよう、最初からすべてにデフォルト値を用意した。",
+    },
+    {
+      id: "cloud",
+      name: "CloudBackupService",
+      path: "RunWay/Shared/Service/CloudBackupService.swift",
+      desc: "ユーザーがボタンを押したときだけCKRecordを直接作成し、CloudKit Private Databaseへアップロード/ダウンロードする。",
+      resp: [
+        "ユーザーがボタンを押したときだけCKRecordを直接生成してアップロード/ダウンロード",
+        "座標・警告・スプリットの配列はJSONエンコードして1つのフィールドに保存",
+      ],
+    },
+    {
+      id: "reminder",
+      name: "RunReminderService",
+      path: "RunWay/Services/RunReminderService.swift",
+      desc: "最後のラン + 7日後の時点でローカル通知を予約する。ランを保存するたびに予約を組み直す。",
+      resp: [
+        "最後のラン + 7日後の時点でローカル通知を予約",
+        "新しいランを保存するたびに予約を組み直す",
+        "設定画面のトグルでオン/オフ可能",
+      ],
+    },
+    {
+      id: "logbook",
+      name: "LogbookView",
+      path: "RunWay/Views/Running/LogbookView.swift",
+      desc: "SwiftDataFlightを週単位、さらに月単位でグループ化してリスト表示する。",
+      resp: [
+        "SwiftDataFlightを週単位、さらに月単位でグループ化",
+        "月/週ごとに開閉できるリストUIを提供",
+      ],
+    },
+    {
+      id: "summary",
+      name: "FlightSummaryView",
+      path: "RunWay/Views/Running/FlightSummaryView.swift",
+      desc: "ラン1件の詳細画面。MapKitのルート、kmスプリットチャート、GPWSバッジを表示する。",
+      resp: [
+        "GPS座標からMapKitのルートを描画",
+        "kmスプリットをナイキランクラブ風チャートで表示",
+        "スプリットパターンバッジとGPWS警告を表示",
+      ],
+    },
+    {
+      id: "alerts",
+      name: "AlertsView",
+      path: "RunWay/Views/Alert/AlertsView.swift",
+      desc: "保存されたSwiftDataAlertを月別にまとめ、SINK RATE/OVERSPEED/MINIMUMSの履歴を表示する。",
+      resp: [
+        "SwiftDataAlertを月別にグループ化して履歴表示",
+        "SINK RATE/OVERSPEED/MINIMUMSをタイプ別アイコンで区別",
+      ],
+    },
+    {
+      id: "calendar",
+      name: "FlightCalendarView",
+      path: "RunWay/Views/Chart/FlightCalendarView.swift",
+      desc: "月間の記録をGitHubヒートマップ風に表示する。日ごとの累積距離に応じて色の濃さが変わる。",
+      resp: [
+        "日ごとの累積距離に応じてaccentカラーの濃淡を変えたヒートマップを描画",
+        "月間の総距離・ラン回数・平均ペースを上部のサマリーカードに表示",
+      ],
+    },
+  ],
   footer: {
     tagline: "CLEARED FOR TAKE-OFF",
     description: [
@@ -585,8 +789,101 @@ export const ja: SiteDictionary = {
         "10番でretrieveRemoteSession()を止めたことによる副作用だった。コードを消すときは、それに密かに寄りかかっていた別のロジック(今回は全く別の関数の判定基準)まで一緒に点検する必要があると改めて感じた。",
     },
     {
-      id: "tts-audio-ducking-cross-device",
+      id: "gpws-reset-clears-mission-data",
       number: "12",
+      title: "GPWS全体リセットバグ - 共有reset()がミッション目標まで消していた",
+      status: "RESOLVED",
+      squawk: "画面遷移やランニング再開のたびに、Mission Flightの目標(ペース/距離)が原因不明で消えていた",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "ホットフィックス分離中に発見",
+          body: "まだマージされていない心拍数ブランチをv1.0向けの単独ホットフィックスとして急いで切り出す途中で発見した。RunningCenter.reset()は画面遷移だけでなくstart()の中でも防御的に呼ばれていたが、この呼び出しがmodeAData(ミッション目標)まで毎回消していた。",
+        },
+        {
+          tag: "ROOT CAUSE",
+          title: "1つの関数に2つの役割が混ざっていた",
+          body: "start()内の防御的なreset()は、elapsedTime/flightDataが前の値を引きずる問題を防ぐためのものであり、modeADataを消す意図はなかった。しかし同じ関数の中に一緒に入っていたため、画面遷移のたびにも、再開時の防御でも、毎回目標データまで一緒に消えていた。",
+        },
+        {
+          tag: "ACTION",
+          title: "責務を分離",
+          body: "目標データを消す役割をclearModeAData()として切り出した。reset()はmodeADataに触れなくなり、RunViewModel/WatchViewModelのresetState()だけがclearModeAData()を明示的に呼ぶようにした。",
+        },
+      ],
+      verdict:
+        "「画面遷移用のクリーンアップ」と「再開時の防御」という別々の目的が1つの関数に同居していると、片方だけを意図した変更がもう片方まで巻き込んでしまう。関数単位で責務を分けるだけで解決した。",
+    },
+    {
+      id: "swiftdata-migration-default-value",
+      number: "13",
+      title: "SwiftDataの軽量マイグレーションが静かに失敗していた問題",
+      status: "RESOLVED",
+      squawk: "削除して再インストールするテストしかしていなかったため、既存ユーザーがアプリを更新するだけでマイグレーションに失敗するリスクがあった",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "テスト方法の死角",
+          body: "心拍数ベースのGPWSのためにSwiftDataAlertにtarget/heartRateフィールドを追加したが、毎回削除して再インストールするテストしかしておらず、マイグレーション経路自体を一度も通っていなかった。",
+        },
+        {
+          tag: "ROOT CAUSE",
+          title: "initのデフォルト値はマイグレーションから見えない",
+          body: "新しいフィールドのデフォルト値をinit()のパラメータにしか入れていなかった。SwiftDataの自動軽量マイグレーションは、既存レコードに新しいフィールドの値を埋める際にプロパティ宣言部のデフォルト値を参照するが、initパラメータのデフォルト値はそこからは見えない。",
+        },
+        {
+          tag: "ACTION",
+          title: "宣言部に直接デフォルト値を明記",
+          body: "プロパティ宣言部に直接デフォルト値を入れた。調査の過程で、これをやってもクラッシュするケースがあることも確認した。Appleのフォーラムではこれを「意図された動作」としている。完全に安全にするには、VersionedSchemaでフィールドを一旦オプショナルにしてから必須値に変える多段階マイグレーションが必要。",
+        },
+      ],
+      verdict:
+        "削除して再インストールするテストではマイグレーション経路自体を通らない。スキーマを変更するたびに、少なくとも一度は既存バージョンからのアップデート経路で確認する必要があると学んだ。",
+    },
+    {
+      id: "cloudkit-backup-save-policy-and-index",
+      number: "14",
+      title: "CloudKitバックアップのバグ2件 - savePolicyとqueryableインデックス",
+      status: "RESOLVED",
+      squawk: "2回目のバックアップから静かに「0件バックアップしました」、CloudKit Dashboardでは照会すらできない",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "バグ1 - 2回目のバックアップから静かに失敗",
+          body: "バックアップボタンを押すとCloudKit Dashboardにレコードまでは正しくできたが、2回目に押すと「0件バックアップしました」と表示された。",
+        },
+        {
+          tag: "ROOT CAUSE",
+          title: "変更タグの比較失敗が静かに埋もれていた",
+          body: "modifyRecords(saving:deleting:)のデフォルトの保存ポリシー(.ifServerRecordUnchanged)はサーバー上のレコードと変更タグを比較するが、新しく作ったローカルレコードにはその情報がなく、競合として扱われていた。しかもこの失敗はエラーを投げず、レコードごとの結果の中にだけ含まれていたため、表面上は何の問題もないように見えた。",
+        },
+        {
+          tag: "ACTION",
+          title: "常に上書きする方式へ変更",
+          body: "savePolicy: .changedKeysに変更し、常にローカルの状態で無条件に上書きするようにした。",
+        },
+        {
+          tag: "FINDING",
+          title: "バグ2 - Dashboardで照会できない",
+          body: "バックアップはできるのに、CloudKit Dashboardで条件なしの全件照会をすると「Field 'recordName' is not marked queryable」というエラーが出た。",
+        },
+        {
+          tag: "ROOT CAUSE",
+          title: "recordNameにはデフォルトでインデックスがない",
+          body: "CKQueryで照会する際、条件や並び替えに使うフィールドごとにQueryableインデックスが必要だが、recordNameにはデフォルトでインデックスがない。条件なしの照会(NSPredicate(value: true))が内部的にrecordNameを参照しようとして引っかかっていた。",
+        },
+        {
+          tag: "RESULT",
+          title: "クエリ条件の変更とインデックス追加",
+          body: "クエリをdateフィールドの条件基準に変更してrecordNameの参照自体を回避し、CloudKit DashboardのSchema > IndexesでrecordNameにQUERYABLEインデックスも直接追加した。",
+        },
+      ],
+      verdict:
+        "保存の失敗がエラーを投げずに結果値の中だけに静かに含まれるAPIだったため、「成功したように見える失敗」を捕まえるには戻り値自体を確認する習慣が必要だった。CloudKit Dashboardとアプリのコードが互いに異なるクエリを作るという点も見落としやすいポイントだった。",
+    },
+    {
+      id: "tts-audio-ducking-cross-device",
+      number: "15",
       title: "kmスプリットのTTSが聞こえない問題 - セッションのアクティブ化とデバイス間のオーディオ分離",
       status: "KNOWN LIMITATION",
       squawk: "音楽再生中にkmスプリットの音声案内が聞こえない、あるいはWatch単独ランニングでは全く聞こえない",
@@ -615,8 +912,84 @@ export const ja: SiteDictionary = {
       verdict:
         "オンデバイスのダッキングのバグは2つとも直したが、デバイス間のオーディオセッション分離という根本的な限界はコードでは解決できなかった。代わりにアプリのお知らせ画面に「音楽もApple Watchで再生してほしい」という案内を追加し、ユーザーの行動で回避した。すべての問題がコードで解決するわけではなく、時には正直に案内することも答えになる。",
     },
+    {
+      id: "watch-crown-distance-step-gap",
+      number: "16",
+      title: "Watchの距離設定Digital Crownが中途半端な値で止まる問題",
+      status: "RESOLVED",
+      squawk: "CUSTOM距離をCrownで調整すると500m、600m、1.1km、1.6kmのような中途半端な値で止まる",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "すでに残っていたTODO",
+          body: "最小値100mから回し続けると中途半端な値で止まることを発見した。コードにはすでに「// 修正が必要」というTODOが残っていた。",
+        },
+        {
+          tag: "ROOT CAUSE",
+          title: "開始点がステップの倍数になっていなかった",
+          body: "Crownのバインディングは開始値0.1(100m)から0.5ずつ足していく構造だった。100mは0.5の倍数ではないため、それ以降のすべての値が開始点の分だけずれ続けていた。",
+        },
+        {
+          tag: "ACTION",
+          title: "値の代わりにインデックスへ変更",
+          body: "Crownの値を距離そのものではなく、あらかじめ用意したdistanceSteps配列のインデックスに変更した。100mは配列の先頭に例外として置き、以降は0.5km刻みのグリッドにハーフ/フルマラソン(21.1km/42.2km)だけを間に挟んだ。プリセットボタン(3K/5K/10K/HALF/FULL)も値の代わりにインデックスを探して設定するよう修正した。",
+        },
+      ],
+      verdict:
+        "開始点とステップ幅が互いの倍数になっていないと、そのずれが積み重なり続けるという、よくあるが見落としやすい算術バグだった。",
+    },
+    {
+      id: "sink-rate-stuck-crash",
+      number: "17",
+      title: "SINK RATE固着と強制終了 - 三度目の変更で表面化した組み合わせバグ",
+      status: "RESOLVED",
+      squawk: "OVERSPEED後に減速するとSINK RATEから戻らず、偏差が300秒まで上昇して強制終了",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "リリース直後に再現",
+          body: "1.3リリース直後、OVERSPEED警告に反応して減速すると正常にSINK RATEに切り替わったが、再び加速してもNORMALに戻らなかった。偏差の数値は上がり続けて300秒に達し、最終的にWatchアプリが強制終了した。",
+        },
+        {
+          tag: "ROOT CAUSE",
+          title: "停止判定とペース計算が別々のものを見ていた",
+          body: "GPS信頼度(speedAccuracy)が負のサンプルは停止判定(isStationary)では確実にスキップされるが、ペース計算用の速度スムージングはこのチェックの外で毎回無条件に更新されていた。OVERSPEEDに反応して急減速する区間はまさに信頼度が負になりやすく、停止確定はできないままスムージング値だけが低い方へ引っ張られ続けた。",
+        },
+        {
+          tag: "DISCOVERY",
+          title: "心拍モードで裏付け",
+          body: "心拍ベースのGPWSはこのスムージング計算自体を経由せず、リアルタイムの心拍をそのまま使う。同じ条件でも問題は起きなかった。原因がペース計算の経路だけにあることを裏付ける手がかりになった。",
+        },
+        {
+          tag: "ACTION",
+          title: "修正",
+          body: "スムージング更新を停止判定と同じspeedAccuracyチェックの中に移した。信頼できない速度値なら、停止判定もペース計算も両方それまでの状態を保つようにした。",
+        },
+        {
+          tag: "FINDING",
+          title: "検証中に見つかった二つ目のバグ",
+          body: "この修正を確認している最中、別件として、停止して休んでいる間もSINK RATE/OVERSPEEDの振動が鳴り止まない問題が見つかった。停止中はGPWSを凍結する既存のロジックが、停止直前がたまたま警告状態だった場合その状態のまま固まり、警告画面と繰り返し振動を鳴らし続けていた。",
+        },
+        {
+          tag: "RESULT",
+          title: "凍結ではなく初期化に",
+          body: "停止中は凍結する代わりにnormalへ戻すよう変更した。心拍低下による新規誤警告も引き続き防げるうえ、停止直前に警告が出ていても停止した瞬間に消えるようになった。1.3.1としてリリース。",
+        },
+      ],
+      verdict:
+        "このバグは一度に生まれたものではなく、v1.3準備中に行った二つの変更が重なって生まれたものだった。まず停止判定の仕組みをraw速度ベースに作り直し、その後まったく別の理由(心拍低下による誤警告防止)で停止中に凍結するロジックを追加した。それぞれはその時点では妥当な理由による変更だったが、停止判定側のルールが後から追加した凍結ロジックの前提を崩しうることには気づいていなかった。片方のコードだけを見ていては見つからない、二つの変更の関係の中にだけ現れるバグだった。",
+    },
   ],
   releases: [
+    {
+      version: "v1.3.1",
+      date: "2026.09",
+      items: [
+        "OVERSPEED/SINK RATE警告後にNORMALへ戻らず強制終了する問題を修正",
+        "一時停止中もGPWS警告の振動が鳴り続ける問題を修正",
+        "設定画面から7日間非アクティブ時のリマインダー通知をオフにできるオプションを追加",
+      ],
+    },
     {
       version: "v1.3",
       date: "2026.08",
