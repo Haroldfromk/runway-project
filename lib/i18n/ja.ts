@@ -22,7 +22,6 @@ export const ja: SiteDictionary = {
     appStoreCta: "App Storeでダウンロード",
     badgeOs: "iOS 26+ · watchOS 11.5+",
     badgeStack: "SwiftUI · Actor · AsyncStream",
-    androidBadge: "Android移植進行中",
   },
   concept: {
     eyebrow: "Flight Operations",

@@ -22,7 +22,6 @@ export const ko: SiteDictionary = {
     appStoreCta: "App Store에서 다운로드",
     badgeOs: "iOS 26+ · watchOS 11.5+",
     badgeStack: "SwiftUI · Actor · AsyncStream",
-    androidBadge: "Android 포팅 진행 중",
   },
   concept: {
     eyebrow: "Flight Operations",

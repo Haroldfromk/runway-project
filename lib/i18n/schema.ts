@@ -88,7 +88,6 @@ export interface SiteDictionary {
     appStoreCta: string;
     badgeOs: string;
     badgeStack: string;
-    androidBadge: string;
   };
   concept: {
     eyebrow: string;

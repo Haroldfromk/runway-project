@@ -71,12 +71,6 @@ export default function Hero({ dict }: { dict: SiteDictionary["hero"] }) {
             >
               {dict.badgeStack}
             </span>
-            <span
-              className="rw-mono-label rounded-lg border px-4 py-2.5 text-[11px]"
-              style={{ borderColor: "var(--rw-border)", color: "var(--rw-muted)" }}
-            >
-              {dict.androidBadge}
-            </span>
           </div>
         </div>
 

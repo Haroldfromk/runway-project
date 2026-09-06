@@ -22,7 +22,6 @@ export const en: SiteDictionary = {
     appStoreCta: "Download on the App Store",
     badgeOs: "iOS 26+ · watchOS 11.5+",
     badgeStack: "SwiftUI · Actor · AsyncStream",
-    androidBadge: "Android port in progress",
   },
   concept: {
     eyebrow: "Flight Operations",
