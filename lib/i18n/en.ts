@@ -421,30 +421,123 @@ export const en: SiteDictionary = {
   faq: [
     {
       q: "Can I use just the iPhone or just the Apple Watch?",
-      a: "Yes. RunWay supports iPhone-only, Watch-only, and mirrored use across both devices. When mirroring, whichever device starts the run leads GPS tracking and calculation, while the other device only receives and displays the results in real time.",
+      a: "Yes. iPhone alone, Apple Watch alone, and both together are all supported. A run started on the watch is handled entirely by the watch, and the record is sent to the iPhone's logbook once it ends. Starting from the iPhone wakes the watch app automatically; from there the iPhone handles GPS and calculations while the watch measures heart rate and shows the display.",
     },
     {
-      q: "If one device turns off or the app quits during mirroring, does the record get lost?",
-      a: "If the leading device (the one tracking GPS) quits, that run stops. However, everything recorded up to that point is saved locally, so you can still find it in the Logbook.",
+      q: "If one device shuts down or the app closes mid-run, do I lose the record?",
+      a: "If the device tracking GPS shuts down, that run stops. When it ends normally, everything up to that point stays in the logbook. However, force-quitting the iPhone app during a run started on the iPhone can leave the watch display frozen on its last values, and that run may not reach the logbook. It is still saved to the Health app in that case. This is a known limitation we are working on.",
     },
     {
       q: "Where is my running data stored?",
-      a: "All running records are stored locally on your device only, using Apple's SwiftData framework. Nothing is transmitted or synced to external servers.",
+      a: "By default every run is stored only on your device, through Apple's SwiftData. Tapping the backup button in Settings saves them to your own iCloud; this never happens automatically. Runs are also saved to Apple's Health app.",
     },
     {
-      q: "If I delete the app, is my data deleted too?",
-      a: "Yes. Since storage is local-only, deleting the app also deletes all saved running data. There's currently no separate backup feature.",
+      q: "If I delete the app, do my records go with it?",
+      a: "Records stored on the device are deleted with it. If you backed up from Settings beforehand, you can reinstall, sign in with the same Apple Account, and tap restore to bring them back. Backup is not automatic, so it has to be tapped before deleting. Workouts saved to the Health app remain regardless.",
     },
     {
-      q: "Is my location or heart rate data sent anywhere external?",
-      a: "No. RunWay never transmits or uploads any data to external servers, and doesn't use any third-party analytics or advertising SDKs. See the Privacy Policy page for details.",
+      q: "Is my location or heart rate data sent anywhere?",
+      a: "There are no third-party analytics or advertising SDKs, and no third party including the developer can access your data. Only two things leave the device. One is your current location, sent to Apple's WeatherKit to show weather on the pre-flight screen. The other is your records going to your own iCloud when you tap the backup button. Both are handled by Apple and neither is accessible to the developer. The privacy policy page covers this in detail.",
     },
     {
-      q: "The GPWS alerts (SINK RATE, OVERSPEED) aren't behaving as expected.",
-      a: "Alerts are triggered based on the target pace and allowed Pace Deviation you set in Mission Flight mode. Double-check those settings, and if something still seems off, let me know through the form below.",
+      q: "GPWS alerts (SINK RATE, OVERSPEED) are firing when I do not expect them.",
+      a: "Alerts are based on the target and tolerance you set in Mission Flight mode. The target can be either pace or heart rate, so check which one is selected along with the tolerance value. A narrower tolerance means more frequent alerts. If it still looks wrong, let us know through the form below.",
     },
   ],
   troubleshooting: [
+    {
+      id: "health-duplicate-save-owner",
+      number: "18",
+      title: "The Same Run Twice in Health - Removing a Duplicate and Deciding an Owner Were Different Jobs",
+      status: "RESOLVED",
+      squawk: "A mirrored run appears twice in the Health workout list, once as iPhone and once as Apple Watch",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "A comment that was not true",
+          body: "Two entries started at the same second, both sourced from RunWay, differing only in device. A code comment said saving to Apple Health happened only through the Watch builder. It did not. iPhone also attaches a builder to its session and begins collecting, and leaving that builder unfinished at the end lets the system close it out and save whatever it gathered.",
+        },
+        {
+          tag: "ACTION",
+          title: "Blocking one side",
+          body: "During mirroring the iPhone builder is discarded. Discarding unconditionally would leave nobody saving when running without a watch, so it only applies while mirroring.",
+        },
+        {
+          tag: "DISCOVERY",
+          title: "It split by who ended the run",
+          body: "On device, ending from the watch worked, but ending from the phone left nothing in Health at all. Ending on the watch goes through the HealthKit delegate, which finishes the workout. Arriving as a stop signal from the phone does not touch that delegate. The phone discarded its own builder and the watch never finished, so nobody saved.",
+        },
+        {
+          tag: "RESULT",
+          title: "Deciding the rule first",
+          body: "Settling on \"the device with the sensors saves\" made both fixes obvious. The watch now finishes on the remote stop path too, and the phone checks mirroring before clearing that state rather than after. finishWatchWorkout() also ends the session before ending collection, since the remote path arrives with the session still running.",
+        },
+      ],
+      verdict:
+        "At first this looked like reducing two savers to one. It was really about deciding which device owns the save. Without that decision, blocking one side meant nobody saved on the blocked path and both saved on the other. Removing a duplicate and deciding an owner were different jobs.",
+    },
+    {
+      id: "watch-touchdown-teardown",
+      number: "19",
+      title: "A Leftover Screen That Ended the Next Run - Two Wrong Hypotheses and One Sentence From the Reporter",
+      status: "RESOLVED",
+      squawk: "Starting a run from the phone shows PFD on the watch for a moment, then drops back to the home screen",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "Someone else's symptom",
+          body: "Reported by a user on 1.3.1 and not reproducible on my own device. Tracing every path that clears the watch navigation left exactly one, and the user had pressed nothing, so something was ending the run on their behalf.",
+        },
+        {
+          tag: "ACTION",
+          title: "Two wrong hypotheses",
+          body: "First guess was a stop signal from the previous run queued and delivered late. A reproduction recipe went out and nothing reproduced; the recipe turned out to sidestep the very condition it was testing. Second guess was the splash screen withholding the NavigationStack for 1.5 seconds, which felt certain until a follow-up detail arrived: fine after a full quit, broken only from the background. Exactly backwards.",
+        },
+        {
+          tag: "DISCOVERY",
+          title: "They never viewed the summary",
+          body: "The third detail was the answer. Ending a run on the watch shows a landing screen, and leaving it without tapping summary means onDisappear never fires on backgrounding, so the teardown never runs. When the next run starts, PFD is pushed over that leftover screen, and the covered screen's onDisappear finally fires and tears down the run that just began.",
+        },
+        {
+          tag: "RESULT",
+          title: "Telling covered from left",
+          body: "The teardown now skips while a workout session is running. Leaving normally still passes, since the session has already ended by then. A new run also replaces the navigation path instead of stacking on the previous one. Everything written for the two wrong hypotheses was reverted.",
+        },
+      ],
+      verdict:
+        "onDisappear cannot tell \"the user left\" from \"another screen covered this one\". The larger lesson sits elsewhere. Both wrong hypotheses came from reading code; the right one arrived only after the reporter said they had not viewed the summary. Told the repro failed, I questioned the recipe instead of the hypothesis. For a bug someone else hit, no amount of reading fills in the conditions. Only they know them.",
+    },
+    {
+      id: "ghost-viewmodel-blocked-save",
+      number: "20",
+      title: "The Copy That Would Not Die - a Second View Model From @State Was Blocking the Save",
+      status: "RESOLVED",
+      squawk: "Only mirrored runs ended on the watch fail to reach the app's logbook (Health records them fine)",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "One case out of four",
+          body: "Ending from the app, running with the watch off, and watch-only runs all saved. Only ending from the watch failed, which meant the save function itself was fine. But all four early returns in it were silent, so there was no way to tell which one had fired.",
+        },
+        {
+          tag: "ACTION",
+          title: "Printing the order",
+          body: "Each early return got a reason, collected in order and shown together, on screen as well since this had to be checked outdoors. Ten lines came back, and two looked wrong: the duplicate guard read as off both times, and the same run reported 0m on one pass and 264m on another.",
+        },
+        {
+          tag: "DISCOVERY",
+          title: "There were two view models",
+          body: "A @State initial value on an App struct is rebuilt every time SwiftUI re-creates the struct, and only the first is kept. The discarded ones had already subscribed in init(), and a Task holding self strongly while awaiting a stream that never ends kept them alive. The duplicate guard is per-instance, so it never fired, and the ghost running first cleared shared state that the real instance then needed.",
+        },
+        {
+          tag: "RESULT",
+          title: "Checking each iteration",
+          body: "Both Tasks became weak and check whether the object is still alive on every iteration. Discarded instances now deallocate, and their subscriptions end with them. Rolling back to the 1.3.1 commit and repeating the test failed the same way, confirming this was not introduced by the current work.",
+        },
+      ],
+      verdict:
+        "Only one save path goes through the subscription, which is why the other three looked fine. The ghost had nowhere to show itself there. It was also receiving every other subscription from init(), not just stop signals; the failed save was simply the most visible symptom. That a @State initial value gets built more than once was known. That a discarded copy keeps working once subscriptions are involved was not.",
+    },
     {
       id: "mirroring-redesign",
       number: "01",
@@ -980,6 +1073,20 @@ export const en: SiteDictionary = {
     },
   ],
   releases: [
+    {
+      version: "v1.3.2",
+      date: "2026.10",
+      items: [
+        "Fixed runs recorded with a mirrored Apple Watch being saved twice in the Health app",
+        "Fixed runs ended on the watch not being saved to the app",
+        "Fixed watch-only runs that could fail to reach the iPhone",
+        "Fixed the next run ending immediately when the watch summary screen was left without being viewed",
+        "Fixed GPWS alerts being recorded on the map too often",
+        "Made alerts clear faster",
+        "The inactivity reminder now repeats instead of firing only once",
+        "Improved how Apple Watch status is shown on the pre-flight screen",
+      ],
+    },
     {
       version: "v1.3.1",
       date: "2026.09",
