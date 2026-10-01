@@ -155,6 +155,8 @@ export interface SiteDictionary {
     resolvedLabel: string;
     limitationLabel: string;
     verdictLabel: string;
+    filterAllLabel: string;
+    filterEmpty: string;
   };
   supportPage: {
     backLabel: string;

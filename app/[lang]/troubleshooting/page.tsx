@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
-import TroubleshootCard from "@/components/TroubleshootCard";
+import TroubleshootList from "@/components/TroubleshootList";
 import { getDictionary } from "@/lib/i18n";
 import { isValidLang, DEFAULT_LANG, type Lang } from "@/lib/i18n/types";
 
@@ -97,15 +97,14 @@ export default async function TroubleshootingPage({
 
       <section>
         <div className="mx-auto max-w-4xl px-5 py-14 sm:px-8">
-          <div className="space-y-4">
-            {cases.map((item) => (
-              <TroubleshootCard
-                key={item.id}
-                item={item}
-                verdictLabel={dict.troubleshootingPage.verdictLabel}
-              />
-            ))}
-          </div>
+          <TroubleshootList
+            cases={cases}
+            verdictLabel={dict.troubleshootingPage.verdictLabel}
+            allLabel={dict.troubleshootingPage.filterAllLabel}
+            resolvedLabel={dict.troubleshootingPage.resolvedLabel}
+            limitationLabel={dict.troubleshootingPage.limitationLabel}
+            emptyLabel={dict.troubleshootingPage.filterEmpty}
+          />
         </div>
       </section>
 
