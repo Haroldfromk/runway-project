@@ -3,6 +3,7 @@ import type { SiteDictionary } from "@/lib/i18n/schema";
 
 const phoneExt: Record<string, string> = {
   "dynamic-island": "jpg",
+  "fdr-drag": "gif",
 };
 
 function phoneSrc(key: string) {

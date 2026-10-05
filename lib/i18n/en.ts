@@ -72,6 +72,9 @@ export const en: SiteDictionary = {
       { key: "freerunning", label: "FREE FLIGHT · CRUISE" },
       { key: "touchdown", label: "TOUCHDOWN" },
       { key: "summary", label: "FLIGHT SUMMARY · Map route" },
+      { key: "debrief", label: "DEBRIEF · Run Analysis" },
+      { key: "fdr", label: "FLIGHT DATA RECORDER" },
+      { key: "fdr-drag", label: "FLIGHT DATA RECORDER · Rewind" },
       { key: "logbook", label: "LOGBOOK" },
       { key: "databackup", label: "DATA BACKUP · CloudKit" },
       { key: "alerts", label: "ALERTS · GPWS history" },
@@ -439,11 +442,15 @@ export const en: SiteDictionary = {
     },
     {
       q: "Is my location or heart rate data sent anywhere?",
-      a: "There are no third-party analytics or advertising SDKs, and no third party including the developer can access your data. Only two things leave the device. One is your current location, sent to Apple's WeatherKit to show weather on the pre-flight screen. The other is your records going to your own iCloud when you tap the backup button. Both are handled by Apple and neither is accessible to the developer. The privacy policy page covers this in detail.",
+      a: "There are no third-party analytics or advertising SDKs, and no third party including the developer can access your data. Only three things leave the device: your current location, sent to Apple's WeatherKit to show weather on the pre-flight screen; your records going to your own iCloud when you tap the backup button; and a once-a-day check for a newer version on the App Store. All three are handled by Apple and none is accessible to the developer. The update check sends only the app identifier and a country code, never your running data. The privacy policy page covers this in detail.",
     },
     {
       q: "GPWS alerts (SINK RATE, OVERSPEED) are firing when I do not expect them.",
       a: "Alerts are based on the target and tolerance you set in Mission Flight mode. The target can be either pace or heart rate, so check which one is selected along with the tolerance value. A narrower tolerance means more frequent alerts. If it still looks wrong, let us know through the form below.",
+    },
+    {
+      q: "The app shows a LOST CONTACT alert after I ended my run on the watch.",
+      a: "The app raises it when nothing has arrived from the Apple Watch for more than fifteen seconds. It usually means the run was ended on the watch but that signal never reached the app. Choosing to end the run keeps everything recorded up to that point, and choosing to keep running carries on as before. If watch data starts arriving again the alert clears by itself. It can also appear when the connection drops briefly mid-run, in which case you can dismiss it and keep going.",
     },
   ],
   troubleshooting: [
@@ -1073,8 +1080,73 @@ export const en: SiteDictionary = {
       verdict:
         "Only one save path goes through the subscription, which is why the other three looked fine. The ghost had nowhere to show itself there. It was also receiving every other subscription from init(), not just stop signals; the failed save was simply the most visible symptom. That a @State initial value gets built more than once was known. That a discarded copy keeps working once subscriptions are involved was not.",
     },
+    {
+      id: "watch-stop-waiting-on-save",
+      number: "21",
+      title: "A save that never returned, with the stop signal queued behind it",
+      status: "RESOLVED",
+      squawk: "A run ended on the watch leaves the iPhone sitting on the running screen",
+      steps: [
+        {
+          tag: "FINDING",
+          title: "No condition would hold",
+          body: "It was intermittent, and trying again always worked. It only showed up on long runs, yet one failed at 40 minutes and another was fine at 114, so length drew no line either. The worse part was that the iPhone had nothing to show. With no signal arriving, nothing happens at all, so there was no way to tell a signal never sent from one lost in transit from one received and discarded.",
+        },
+        {
+          tag: "ACTION",
+          title: "Build a way to read it first",
+          body: "Every step between the button and the signal got a line of its own. But the watch simulator does not persist what an app writes to the system log: six hours of it held zero lines from our app while system apps logged normally. The symptom appeared in the simulator and the log could only be read on a real device, so the place it reproduced and the place it could be read were different places. Writing the same lines to a file inside the app's own folder got around it.",
+        },
+        {
+          tag: "DISCOVERY",
+          title: "Measure a healthy stop first",
+          body: "A failed trace says nothing if you do not know how far it is supposed to go, so a successful stop was captured end to end first. Ten seconds from the button to the iPhone reaching home, six of them inside one call: the watch saving its workout to HealthKit. With that baseline, the missing line in a failed trace was obvious.",
+        },
+        {
+          tag: "ROOT CAUSE",
+          title: "The save never came back",
+          body: "On the day it reproduced, the trace stopped at \"finishing\". The system log showed collection ending in 3.5 seconds and the save that follows never completing. Nine minutes later it still had not, and the iPhone had recorded nine minutes and ten seconds more than the run actually lasted. The stop signal was published only after that save returned.",
+        },
+        {
+          tag: "ACTION",
+          title: "Turn the two around",
+          body: "The publish moved ahead of the save. The iPhone does not need the watch's HealthKit write to finish in order to end its own run. Nothing was removed; the save still runs, just behind the signal instead of in front of it.",
+        },
+        {
+          tag: "RESULT",
+          title: "Ten seconds down to three",
+          body: "On a run of the same length, button to home is now 3.2 seconds. On a six-hour-forty-one-minute run the save took 26 seconds and the iPhone was home in 4.2, twenty-four seconds before the save finished. A safety net landed with it: ten seconds of silence from the watch shows that the app is waiting, and fifteen asks whether to end the run here.",
+        },
+      ],
+      verdict:
+        "What changed was the order, not the save. Why the watch's save stalls on some runs and not others is still unknown. It is not length and it is not volume: the six-hour run wrote far more and finished, while the stalled one wrote to the database faster. The fix did not depend on that answer, though. The iPhone never had a reason to wait on the watch's save in the first place. Explaining a fault completely and removing what the user lives through are not always the same piece of work.",
+    },
   ],
   releases: [
+    {
+      version: "v1.4",
+      date: "2026.10",
+      items: [
+        "Fixed the app staying on the running screen after a run was ended from the watch",
+        "The app now tells you when watch data stops arriving, and asks whether to end the run if it does not come back",
+        "New Debrief tab, analyzing pace patterns, heart rate response, and alert distribution across your saved runs",
+        "Added FLIGHT DATA RECORDER: pick any moment of a past run and see the pace, heart rate, cadence and altitude it was recording, along with where on the course you were (recorded every 5 seconds, for runs saved from this version on)",
+        "You can now choose the app language between Korean, English, and Japanese in Settings",
+        "Fixed paused time counting toward split pace and the FLIGHT DATA RECORDER timeline",
+        "A haptic now marks every kilometre, not just the voice",
+        "Tap a date in the Flight Calendar to go straight to that day's runs",
+        "Flight Calendar now marks how many runs a day holds with dots",
+        "The app tells you when a new version is on the App Store",
+        "Flight Summary, Flight Calendar and the Logbook now show running time",
+        "Smoother scrolling and screen transitions when opening a long run's record",
+        "The altitude scale no longer spans a wider range than the run actually covered",
+        "Start and finish points are now told apart by colour on the map",
+        "Fixed location tracking continuing after a run ended until you left the summary screen",
+        "Fixed the watch briefly showing the previous run's values right after a new run starts",
+        "Fixed the watch saving a value one lower than the target pace or tolerance you picked",
+        "Fixed one run being able to make the whole iCloud backup fail",
+      ],
+    },
     {
       version: "v1.3.2",
       date: "2026.10",

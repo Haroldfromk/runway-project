@@ -24,12 +24,13 @@ export const privacyContentKo: PrivacyContent = {
       list: [
         "위치 정보 (GPS) - 러닝 경로 기록, 페이스/거리/속도 계산에 사용됩니다.",
         "HealthKit 데이터 (심박수 등) - 러닝 중 실시간 지표 표시 및 운동 기록 저장에 사용됩니다.",
+        "동작 및 피트니스 데이터(기압계 기반 고도) - 러닝 중 상대 고도 변화를 측정하는 데 사용됩니다.",
         "동작 및 피트니스 데이터 (기압계 기반 고도) - 러닝 중 상대 고도 변화를 측정하는 데 사용됩니다.",
       ],
     },
     {
       heading: "정보 저장 방식",
-      body: "앱이 수집한 모든 데이터는 기본적으로 Apple의 SwiftData 프레임워크를 통해 사용자의 기기 내부에만 저장됩니다. RunWay는 아래 iCloud 백업 기능이나 날씨 조회(WeatherKit)를 제외하면, 어떠한 데이터도 자동으로 외부 서버에 전송하지 않습니다.\n\n앱은 제3자 분석 도구, 광고 SDK, 크래시 리포트 서비스를 사용하지 않습니다. 개발자를 포함한 어떠한 제3자와도 데이터를 공유하지 않습니다.",
+      body: "앱이 수집한 모든 데이터는 기본적으로 Apple의 SwiftData 프레임워크를 통해 사용자의 기기 내부에만 저장됩니다. RunWay는 아래 iCloud 백업 기능, 날씨 조회(WeatherKit), 업데이트 확인을 제외하면, 어떠한 데이터도 자동으로 외부 서버에 전송하지 않습니다.\n\n앱은 제3자 분석 도구, 광고 SDK, 크래시 리포트 서비스를 사용하지 않습니다. 개발자를 포함한 어떠한 제3자와도 데이터를 공유하지 않습니다.",
     },
     {
       heading: "iCloud 백업",
@@ -42,6 +43,10 @@ export const privacyContentKo: PrivacyContent = {
     {
       heading: "Apple Watch 연동",
       body: "Apple Watch 앱을 사용하는 경우, 페이스, 거리, 심박수 등의 러닝 데이터는 Apple의 WatchConnectivity 프레임워크를 통해 iPhone과 Apple Watch 간에 직접 전송됩니다. 이 데이터는 사용자의 기기 밖으로 나가지 않습니다.",
+    },
+    {
+      heading: "업데이트 확인",
+      body: "앱을 열 때 하루에 한 번, App Store에 새 버전이 올라왔는지 확인합니다. 이때 Apple의 공개 조회 주소로 앱 식별자와 국가 코드만 보내며, 사용자를 식별할 수 있는 정보나 러닝 데이터는 보내지 않습니다. 받아온 버전이 설치된 버전보다 높을 때만 안내를 띄웁니다.",
     },
     {
       heading: "리마인더 알림",
@@ -78,11 +83,12 @@ export const privacyContentEn: PrivacyContent = {
         "Location (GPS) - used to record your running route and calculate pace, distance, and speed.",
         "HealthKit data (e.g. heart rate) - used to display real-time metrics and save workout records.",
         "Motion & Fitness data (barometric altitude) - used to measure relative elevation changes during your run.",
+        "Motion & Fitness data (barometric altitude) - used to measure relative elevation changes during your run.",
       ],
     },
     {
       heading: "How Your Data Is Stored",
-      body: "By default, all data collected by the App is stored locally on your device only, using Apple's SwiftData framework. Aside from the iCloud backup feature and weather lookups (WeatherKit) described below, RunWay does not automatically transmit any of your data to external servers.\n\nThe App does not use any third-party analytics, advertising, or crash-reporting services. No data is shared with the developer or any third party.",
+      body: "By default, all data collected by the App is stored locally on your device only, using Apple's SwiftData framework. Aside from the iCloud backup feature, weather lookups (WeatherKit) and the update check described below, RunWay does not automatically transmit any of your data to external servers.\n\nThe App does not use any third-party analytics, advertising, or crash-reporting services. No data is shared with the developer or any third party.",
     },
     {
       heading: "iCloud Backup",
@@ -95,6 +101,10 @@ export const privacyContentEn: PrivacyContent = {
     {
       heading: "Apple Watch Connectivity",
       body: "If you use the Apple Watch app, running data such as pace, distance, and heart rate is transmitted directly between your iPhone and Apple Watch using Apple's WatchConnectivity framework. This data does not leave your devices.",
+    },
+    {
+      heading: "Update Check",
+      body: "Once a day when you open the App, it checks whether a newer version is on the App Store. This sends only the app's identifier and a country code to Apple's public lookup address. No information that identifies you and no running data is sent. The notice appears only when the version returned is higher than the one installed.",
     },
     {
       heading: "Reminder Notifications",
@@ -130,12 +140,13 @@ export const privacyContentJa: PrivacyContent = {
       list: [
         "位置情報(GPS) - ランニングルートの記録、ペース/距離/速度の計算に使用されます。",
         "HealthKitデータ(心拍数など) - ランニング中のリアルタイム表示および運動記録の保存に使用されます。",
+        "モーションとフィットネスデータ（気圧計による高度）- ランニング中の相対的な高度変化を測定するために使用されます。",
         "モーションとフィットネスデータ(気圧計による高度) - ランニング中の相対的な高度変化を測定するために使用されます。",
       ],
     },
     {
       heading: "情報の保存方式",
-      body: "本アプリが収集したすべてのデータは、既定ではAppleのSwiftDataフレームワークを通じてユーザーのデバイス内にのみ保存されます。RunWayは、下記のiCloudバックアップと天気情報の取得(WeatherKit)を除き、いかなるデータも自動的に外部サーバーへ送信することはありません。\n\n本アプリはサードパーティの分析ツール、広告SDK、クラッシュレポートサービスを使用しません。開発者を含むいかなる第三者ともデータを共有しません。",
+      body: "本アプリが収集したすべてのデータは、既定ではAppleのSwiftDataフレームワークを通じてユーザーのデバイス内にのみ保存されます。RunWayは、下記のiCloudバックアップ、天気情報の取得(WeatherKit)、アップデート確認を除き、いかなるデータも自動的に外部サーバーへ送信することはありません。\n\n本アプリはサードパーティの分析ツール、広告SDK、クラッシュレポートサービスを使用しません。開発者を含むいかなる第三者ともデータを共有しません。",
     },
     {
       heading: "iCloudバックアップ",
@@ -148,6 +159,10 @@ export const privacyContentJa: PrivacyContent = {
     {
       heading: "Apple Watch連携",
       body: "Apple Watchアプリを使用する場合、ペース、距離、心拍数などのランニングデータは、AppleのWatchConnectivityフレームワークを通じてiPhoneとApple Watch間で直接送信されます。このデータはユーザーのデバイス外に出ることはありません。",
+    },
+    {
+      heading: "アップデート確認",
+      body: "アプリを開いたときに1日1回、App Storeに新しいバージョンが公開されているかを確認します。このときAppleの公開照会アドレスへアプリの識別子と国コードのみを送信し、ユーザーを識別できる情報やランニングデータは送信しません。取得したバージョンがインストール済みのものより新しい場合にのみお知らせを表示します。",
     },
     {
       heading: "リマインダー通知",
