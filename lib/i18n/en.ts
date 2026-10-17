@@ -1124,6 +1124,20 @@ export const en: SiteDictionary = {
   ],
   releases: [
     {
+      version: "v1.4.1",
+      date: "2026.10",
+      items: [
+        "The PACE lane in FLIGHT DATA RECORDER is now flipped: faster goes up. The other three lanes still put larger values on top",
+        "Paces slower than 33:00/km are no longer recorded. Only a standing start or a full stop produces those, which is what left readings like 40:00/km behind",
+        "Stretches where a value leaves the lane are now marked with a bar at the lane edge, so they can be told apart from gaps where nothing was recorded",
+        "FLIGHT DATA RECORDER draws its lanes wider",
+        "Fixed the distance being cut off on the watch past 20 km",
+        "Runs started from the app now buzz on the watch every kilometer too",
+        "Split voice callouts now come from whichever device your earphones are connected to: the watch if they are paired there, the app if they are plugged into the phone",
+        "Fixed split voice callouts going silent from the second run onward when you started another run without quitting the app",
+      ],
+    },
+    {
       version: "v1.4",
       date: "2026.10",
       items: [
