@@ -97,6 +97,27 @@ body {
   animation: rw-fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* 스크롤에 맞춰 올라오며 나타나는 블록.
+ *
+ * 라이브러리를 안 쓰고 CSS 스크롤 기반 애니메이션으로 한다. 스크롤 이벤트를
+ * 직접 듣는 방식은 프레임마다 돌아서 모바일에서 끊긴다.
+ *
+ * **기본 상태가 이미 보이는 상태다.** 지원하지 않는 브라우저에서는 아무 일도
+ * 안 일어나고 내용은 그대로 보인다. 숨겨놓고 켜는 방식으로 짜면 지원이 없을 때
+ * 내용이 통째로 사라진다. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .rw-rise {
+      animation: rw-fade-up linear both;
+      animation-timeline: view();
+      /* 요소가 아래에서 다 올라올 때까지 돈다. 55% 로 잘랐더니 122px 짜리
+         블록은 67px 스크롤 만에 끝나서 움직인 줄도 몰랐다. 요소 높이에
+         비례해서 길이가 정해지니 짧은 블록도 제 몫만큼은 보인다. */
+      animation-range: entry 0% entry 100%;
+    }
+  }
+}
+
 :focus-visible {
   outline: 2px solid var(--rw-green);
   outline-offset: 2px;
