@@ -12,7 +12,7 @@ export interface PrivacyContent {
 }
 
 export const privacyContentKo: PrivacyContent = {
-  lastUpdated: "최종 수정일 - 2026년 8월 19일",
+  lastUpdated: "최종 수정일 - 2026년 10월 5일",
   sections: [
     {
       heading: "개요",
@@ -70,7 +70,7 @@ export const privacyContentKo: PrivacyContent = {
 };
 
 export const privacyContentEn: PrivacyContent = {
-  lastUpdated: "Last updated - August 19, 2026",
+  lastUpdated: "Last updated - October 5, 2026",
   sections: [
     {
       heading: "Overview",
@@ -128,7 +128,7 @@ export const privacyContentEn: PrivacyContent = {
 };
 
 export const privacyContentJa: PrivacyContent = {
-  lastUpdated: "最終更新日 - 2026年8月19日",
+  lastUpdated: "最終更新日 - 2026年10月5日",
   sections: [
     {
       heading: "概要",
