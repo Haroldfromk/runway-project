@@ -214,6 +214,7 @@ export const ja: SiteDictionary = {
       resp: [
         "LocationService・RunningCenter・HealthKitService・WatchConnectivityServiceを統括",
         "Live Activity、音声案内(TTS)、WeatherKit天気情報サービスを管理",
+        "区間音声はイヤホンが接続された端末が読み上げる。iPhoneが自身の出力を確認し、そうでなければWatchに渡し、受け渡しに失敗すれば自分で読む",
         "ラン終了時のSwiftData保存とRunReminderServiceの再予約",
         "Watchミラーリングの開始/終了、リモート終了信号の処理",
       ],
@@ -226,6 +227,7 @@ export const ja: SiteDictionary = {
       resp: [
         "RunViewModelと同じ構造をWatch環境向けに実装",
         "startOriginで主導端末/ミラーリング端末の動作を分岐",
+        "ミラーリング中も受信した距離からkm境界を自分で判定し、区間の振動を鳴らす",
         "Watch単独ランは保存まで直接処理",
       ],
     },

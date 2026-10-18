@@ -214,6 +214,7 @@ export const ko: SiteDictionary = {
       resp: [
         "LocationService·RunningCenter·HealthKitService·WatchConnectivityService 조율",
         "Live Activity, 음성 안내(TTS), WeatherKit 날씨 정보 서비스 관리",
+        "구간 음성은 이어폰이 꽂힌 기기가 읽는다. 아이폰 출력을 직접 보고 아니면 Watch에 넘기며, 넘기기가 실패하면 자기가 읽는다",
         "러닝 종료 시 SwiftData 저장 및 RunReminderService 재예약",
         "Watch 미러링 시작/종료, 원격 종료 신호 처리",
       ],
@@ -226,6 +227,7 @@ export const ko: SiteDictionary = {
       resp: [
         "RunViewModel과 동일한 구조를 Watch 환경에 맞게 구현",
         "startOrigin으로 주도 기기 / 미러링 기기 동작을 분기",
+        "미러링 중에도 받은 거리로 km 경계를 직접 판정해 스플릿 진동을 울린다",
         "Watch 단독 러닝은 저장까지 직접 처리",
       ],
     },

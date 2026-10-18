@@ -214,6 +214,7 @@ export const en: SiteDictionary = {
       resp: [
         "Coordinates LocationService, RunningCenter, HealthKitService, and WatchConnectivityService",
         "Manages Live Activity, voice announcements (TTS), and WeatherKit weather data",
+        "Split announcements are read by whichever device holds the earphones. The iPhone checks its own output, hands off to the Watch otherwise, and reads it itself if the handoff fails",
         "Saves to SwiftData and reschedules RunReminderService when a run ends",
         "Handles Watch mirroring start/stop and remote-stop signals",
       ],
@@ -226,6 +227,7 @@ export const en: SiteDictionary = {
       resp: [
         "Implements the same structure as RunViewModel, adapted for Watch",
         "Branches driving vs. mirroring device behavior based on startOrigin",
+        "Even while mirroring, it decides km boundaries from the distance it receives and fires the split haptic itself",
         "Handles saving directly for Watch-only runs",
       ],
     },
