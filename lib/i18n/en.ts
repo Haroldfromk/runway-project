@@ -178,10 +178,10 @@ export const en: SiteDictionary = {
       id: "health",
       name: "HealthCenter",
       path: "RunWay/Shared/Actor/HealthCenter.swift",
-      desc: "Holds incoming heart rate/cadence thread-safely in the background. No judgement logic — RunningCenter reads the value when it needs it.",
+      desc: "Holds incoming heart rate/cadence thread-safely in the background. No judgement logic. RunningCenter reads the value when it needs it.",
       resp: [
         "Holds heart rate and cadence thread-safely as an actor",
-        "No judgement logic of its own — RunningCenter reads the value when needed",
+        "No judgement logic of its own. RunningCenter reads the value when needed",
       ],
     },
     {
@@ -206,7 +206,7 @@ export const en: SiteDictionary = {
         "GPWS (SINK RATE/OVERSPEED/MINIMUMS) judgement, reset to normal while stationary",
         "Records km splits, smooths and filters outliers in relative altitude",
       ],
-      intent: "iOS and Watch each receive GPS, heart rate, and altitude independently, so RunningCenter also runs as a separate instance per device. Stationary detection confirms only after filtering out samples with low GPS confidence (speedAccuracy) — but at first that check only gated stationary detection, not the speed smoothing used for pace. The moment you slow down hard in response to OVERSPEED is exactly when GPS confidence tends to go negative, so stationary detection never confirmed while the smoothed speed kept getting pulled toward zero, inflating pace until the app crashed. Fixed in 1.3.1 by moving the smoothing update inside the same confidence check.",
+      intent: "iOS and Watch each receive GPS, heart rate, and altitude independently, so RunningCenter also runs as a separate instance per device. Stationary detection confirms only after filtering out samples with low GPS confidence (speedAccuracy). At first that check only gated stationary detection, not the speed smoothing used for pace. The moment you slow down hard in response to OVERSPEED is exactly when GPS confidence tends to go negative, so stationary detection never confirmed while the smoothed speed kept getting pulled toward zero, inflating pace until the app crashed. Fixed in 1.3.1 by moving the smoothing update inside the same confidence check.",
     },
     {
       id: "runvm",
@@ -274,7 +274,7 @@ export const en: SiteDictionary = {
         "Repeats a distinct haptic pattern per warning type every 2 seconds",
         "Cancels the haptic task immediately on onDisappear",
       ],
-      intent: "Since you're often not looking at the screen while running, each warning type needed to feel different by touch alone — SINK RATE is two unhurried upward taps, OVERSPEED is four quick downward ones. The original approach of 'freezing' GPWS while stationary meant that if the state right before you stopped happened to be a warning, it stayed frozen and kept buzzing. Fixed in 1.3.1 by resetting to normal instead of freezing.",
+      intent: "Since you're often not looking at the screen while running, each warning type needed to feel different by touch alone. SINK RATE is two unhurried upward taps, OVERSPEED is four quick downward ones. The original approach of 'freezing' GPWS while stationary meant that if the state right before you stopped happened to be a warning, it stayed frozen and kept buzzing. Fixed in 1.3.1 by resetting to normal instead of freezing.",
     },
     {
       id: "sdmodels",
