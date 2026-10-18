@@ -93,6 +93,12 @@ body {
   from { opacity: 0; transform: translateY(18px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* 스크롤 등장용. 히어로가 쓰는 18px 로는 움직인 줄도 모른다. */
+@keyframes rw-rise {
+  from { opacity: 0; transform: translateY(44px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 .rw-fade-up {
   animation: rw-fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -108,7 +114,7 @@ body {
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
     .rw-rise {
-      animation: rw-fade-up linear both;
+      animation: rw-rise linear both;
       animation-timeline: view();
       /* 요소가 아래에서 다 올라올 때까지 돈다. 55% 로 잘랐더니 122px 짜리
          블록은 67px 스크롤 만에 끝나서 움직인 줄도 몰랐다. 요소 높이에

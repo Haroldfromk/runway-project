@@ -41,7 +41,7 @@ export default function SystemsMap({
             {dict.mapEyebrow}
           </span>
           <h2
-            className="mt-3 text-3xl sm:text-4xl"
+            className="mt-4 text-4xl leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl"
             style={{ fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--rw-text)" }}
           >
             {dict.mapTitle}

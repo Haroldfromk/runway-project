@@ -53,7 +53,7 @@ export default function SupportClient({ lang, dict }: { lang: Lang; dict: SiteDi
             {dict.supportPage.eyebrow}
           </span>
           <h1
-            className="mt-3 text-3xl sm:text-4xl"
+            className="mt-4 text-4xl leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl"
             style={{ fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--rw-text)" }}
           >
             {dict.supportPage.title}

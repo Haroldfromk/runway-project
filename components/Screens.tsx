@@ -17,15 +17,15 @@ function watchSrc(key: string) {
 export default function Screens({ dict }: { dict: SiteDictionary["screens"] }) {
   return (
     <section id="screens" className="border-b" style={{ borderColor: "var(--rw-border)" }}>
-      <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8 sm:py-24">
-        <div className="mb-10 max-w-xl">
+      <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8 sm:py-32">
+        <div className="mb-16 max-w-3xl rw-rise">
           <h2
-            className="text-3xl sm:text-4xl"
+            className="text-5xl leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl"
             style={{ fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--rw-text)" }}
           >
             {dict.title}
           </h2>
-          <p className="mt-4 text-sm leading-relaxed sm:text-base" style={{ color: "var(--rw-muted)" }}>
+          <p className="mt-7 max-w-2xl text-lg leading-relaxed sm:text-xl" style={{ color: "var(--rw-muted)" }}>
             {dict.description.map((line, i) => (
               <span key={i}>
                 {line}
@@ -36,7 +36,7 @@ export default function Screens({ dict }: { dict: SiteDictionary["screens"] }) {
         </div>
 
         {/* iPhone: horizontal scroll carousel */}
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex items-center justify-between rw-rise">
           <span className="rw-mono-label text-[10px]" style={{ color: "var(--rw-muted)" }}>
             {dict.phoneLabel}
           </span>
