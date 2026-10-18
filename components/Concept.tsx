@@ -11,11 +11,8 @@ export default function Concept({ dict }: { dict: SiteDictionary["concept"] }) {
     <section id="concept" className="border-b" style={{ borderColor: "var(--rw-border)" }}>
       <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8 sm:py-24">
         <div className="mb-14 max-w-xl">
-          <span className="rw-mono-label text-[11px]" style={{ color: "var(--rw-green)" }}>
-            {dict.eyebrow}
-          </span>
           <h2
-            className="mt-3 text-3xl sm:text-4xl"
+            className="text-3xl sm:text-4xl"
             style={{ fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--rw-text)" }}
           >
             {dict.title}
@@ -51,11 +48,7 @@ export default function Concept({ dict }: { dict: SiteDictionary["concept"] }) {
               </p>
               <ul className="mt-5 space-y-2">
                 {m.points.map((p) => (
-                  <li key={p} className="flex items-start gap-2 text-xs" style={{ color: "var(--rw-muted)" }}>
-                    <span
-                      className="mt-1.5 h-1 w-1 shrink-0 rounded-full"
-                      style={{ background: "var(--rw-green)" }}
-                    />
+                  <li key={p} className="text-xs leading-relaxed" style={{ color: "var(--rw-muted)" }}>
                     {p}
                   </li>
                 ))}
@@ -66,9 +59,12 @@ export default function Concept({ dict }: { dict: SiteDictionary["concept"] }) {
 
         {/* GPWS alerts row */}
         <div className="mt-14">
-          <span className="rw-mono-label text-[11px]" style={{ color: "var(--rw-amber)" }}>
+          <h3
+            className="text-lg sm:text-xl"
+            style={{ fontFamily: "var(--font-display)", fontWeight: 600, color: "var(--rw-text)" }}
+          >
             {dict.gpwsEyebrow}
-          </span>
+          </h3>
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
             {dict.gpwsAlerts.map((a) => {
               const color = gpwsColor[a.label] ?? "var(--rw-amber)";

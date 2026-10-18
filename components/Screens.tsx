@@ -19,11 +19,8 @@ export default function Screens({ dict }: { dict: SiteDictionary["screens"] }) {
     <section id="screens" className="border-b" style={{ borderColor: "var(--rw-border)" }}>
       <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8 sm:py-24">
         <div className="mb-10 max-w-xl">
-          <span className="rw-mono-label text-[11px]" style={{ color: "var(--rw-green)" }}>
-            {dict.eyebrow}
-          </span>
           <h2
-            className="mt-3 text-3xl sm:text-4xl"
+            className="text-3xl sm:text-4xl"
             style={{ fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--rw-text)" }}
           >
             {dict.title}

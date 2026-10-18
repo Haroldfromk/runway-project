@@ -90,7 +90,6 @@ export interface SiteDictionary {
     badgeStack: string;
   };
   concept: {
-    eyebrow: string;
     title: string;
     description: string[];
     modes: ConceptMode[];
@@ -98,7 +97,6 @@ export interface SiteDictionary {
     gpwsAlerts: GpwsAlert[];
   };
   screens: {
-    eyebrow: string;
     title: string;
     description: string[];
     phoneLabel: string;

@@ -24,7 +24,6 @@ export const ko: SiteDictionary = {
     badgeStack: "SwiftUI · Actor · AsyncStream",
   },
   concept: {
-    eyebrow: "Flight Operations",
     title: "두 가지 비행 모드",
     description: [
       "항공기 운항 절차에서 착안한 상태 머신으로 러닝 전체를 관리합니다.",
@@ -56,7 +55,6 @@ export const ko: SiteDictionary = {
     ],
   },
   screens: {
-    eyebrow: "iPhone & Apple Watch",
     title: "두 화면, 하나의 비행",
     description: [
       "Watch가 주도하든 iPhone이 주도하든, 두 기기는 같은 FlightData를 공유합니다.",

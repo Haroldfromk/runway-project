@@ -24,7 +24,6 @@ export const en: SiteDictionary = {
     badgeStack: "SwiftUI · Actor · AsyncStream",
   },
   concept: {
-    eyebrow: "Flight Operations",
     title: "Two Flight Modes",
     description: [
       "A state machine modeled after aircraft operating procedures runs the entire session.",
@@ -56,7 +55,6 @@ export const en: SiteDictionary = {
     ],
   },
   screens: {
-    eyebrow: "iPhone & Apple Watch",
     title: "Two Screens, One Flight",
     description: [
       "Whether the Watch or the iPhone leads, both devices share the same FlightData.",
