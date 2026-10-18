@@ -894,7 +894,7 @@ export const en: SiteDictionary = {
       number: "15",
       title: "km-split TTS goes unheard - session activation and cross-device audio isolation",
       status: "KNOWN LIMITATION",
-      squawk: "km-split voice announcements go unheard while music plays, and never come through at all during watch-only runs",
+      squawk: "km-split voice announcements go unheard while music plays. The mirroring case was fixed in 1.4.1; watch-only runs remain a limitation",
       steps: [
         {
           tag: "FINDING",
@@ -912,13 +912,18 @@ export const en: SiteDictionary = {
           body: "During a watch-only run with music playing on iPhone, the TTS was never audible at all. AirPods stay bluetooth-paired to both devices, but only one device owns the actual audio stream at a time. AVAudioSession is a fully separate instance per device, so nothing the Watch configures can reach iPhone's audio.",
         },
         {
+          tag: "ACTION",
+          title: "1.4.1 - the device holding the earphones reads it",
+          body: "The mirroring half turned out to be solvable in code. The first attempt let users pick the device in Settings, but AirPods move between the two devices mid-run, so the setting asked users something they could not know. Now the iPhone checks its own currentRoute: if the earphones are on its side it reads the split itself, otherwise it hands off to the Watch, and it reads the split itself if that handoff fails. An early version matched only Bluetooth ports and missed wired earphones (.headphones) entirely, so the check was inverted to ask whether output is leaving this device's own speaker rather than enumerating port types.",
+        },
+        {
           tag: "FINDING",
           title: "Nike Run Club hits the same wall",
           body: "Community reports showed Nike Run Club has the identical limitation, and the only fix they offer is playing music from the Watch itself. This wasn't our app's bug. It's a structural limit across the whole Apple ecosystem.",
         },
       ],
       verdict:
-        "Fixed both on-device ducking bugs, but the cross-device audio isolation itself can't be solved in code. Added a note in the app's announcements screen instead, asking users to play music from the Watch itself. Not every problem gets solved by code. Sometimes an honest heads-up is the actual answer.",
+        "Fixed both on-device ducking bugs, and 1.4.1 solved which device reads the split while mirroring. What remains is a watch-only run while music plays on the iPhone. The system decides who owns the audio stream, so a Watch app has no way to touch the iPhone's session. Added a note in the app's announcements screen instead, asking users to play music from the Watch itself. Not every problem gets solved by code. Sometimes an honest heads-up is the actual answer.",
     },
     {
       id: "watch-crown-distance-step-gap",
