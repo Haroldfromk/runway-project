@@ -59,23 +59,28 @@ export default function Hero({ dict }: { dict: SiteDictionary["hero"] }) {
               <Download size={14} aria-hidden="true" />
               {dict.appStoreCta}
             </a>
-            <span
-              className="rw-mono-label rounded-lg border px-4 py-2.5 text-[11px]"
-              style={{ borderColor: "var(--rw-border)", color: "var(--rw-muted)" }}
-            >
-              {dict.badgeOs}
-            </span>
-            <span
-              className="rw-mono-label rounded-lg border px-4 py-2.5 text-[11px]"
-              style={{ borderColor: "var(--rw-border)", color: "var(--rw-muted)" }}
-            >
-              {dict.badgeStack}
-            </span>
           </div>
         </div>
 
         <div className="flex justify-center lg:justify-end rw-fade-up" style={{ animationDelay: "0.15s" }}>
           <PFDWidget />
+        </div>
+      </div>
+
+      {/* 요구 사양과 스택. 히어로는 메시지 하나와 행동 하나만 두고, 이런
+          곁다리 정보는 아래 띠로 내린다. 테두리 알약을 걷어내고 평범한
+          글자로 두니 히어로와 섞이지 않는다. */}
+      <div
+        className="relative border-t"
+        style={{ borderColor: "var(--rw-border)" }}
+      >
+        <div className="mx-auto flex max-w-6xl flex-wrap gap-x-8 gap-y-2 px-5 py-4 sm:px-8">
+          <span className="rw-mono-label text-[10px]" style={{ color: "var(--rw-muted)" }}>
+            {dict.badgeOs}
+          </span>
+          <span className="rw-mono-label text-[10px]" style={{ color: "var(--rw-muted)" }}>
+            {dict.badgeStack}
+          </span>
         </div>
       </div>
     </section>
